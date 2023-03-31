@@ -50,20 +50,27 @@ export class ParameterizedInsert<DB, P> {
 
   async execute(db: Kysely<DB>, params: P) {
     if (this.#compiledQuery === undefined) {
-      this.#compiledQuery = this.#qb.compile();
-    }
-    if (this.#compiledQuery.parameters.length !== this.#argList.size()) {
-      throw Error('Query has arguments not specified via ' + ARG_FUNCTIONS);
+      const compiledQuery = this.#qb.compile();
+      if (compiledQuery.parameters.length !== this.#argList.size()) {
+        throw Error('Query has arguments not specified via ' + ARG_FUNCTIONS);
+      }
+      this.#compiledQuery = {
+        query: compiledQuery.query,
+        sql: compiledQuery.sql,
+        parameters: compiledQuery.parameters.map((codedArg, i) =>
+          typeof codedArg == 'string'
+            ? this.#argList.toStringIndex(codedArg, i)
+            : typeof codedArg == 'number'
+            ? this.#argList.toNumberIndex(codedArg, i)
+            : codedArg
+        ),
+      };
     }
     const runnable: Readonly<CompiledQuery> = {
       query: this.#compiledQuery.query,
       sql: this.#compiledQuery.sql,
-      parameters: this.#compiledQuery.parameters.map((arg, i) =>
-        typeof arg == 'string'
-          ? this.#argList.toStringArg(params, arg, i)
-          : typeof arg == 'number'
-          ? this.#argList.toNumberArg(params, arg, i)
-          : arg
+      parameters: this.#compiledQuery.parameters.map((arg) =>
+        typeof arg == 'number' ? this.#argList.toQueryArg(params, arg) : arg
       ),
     };
     return db.executeQuery(runnable);
@@ -104,33 +111,38 @@ class ArgList {
     return this.#args.length;
   }
 
-  toNumberArg(params: any, placeholder: number, i: number): number {
+  toNumberIndex(placeholder: number, paramIndex: number): number {
     if ((placeholder % 1).toFixed(FIXED_DECIMAL_WIDTH) != this.#stringTag) {
-      throw Error(`Argument at index ${i} not specified via ` + ARG_FUNCTIONS);
+      throw Error(
+        `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
+      );
     }
-    let arg = this.#args[Math.floor(placeholder) - 1];
-    if (arg instanceof ParamArg) {
-      arg = params[arg.name];
+    const argIndex = Math.floor(placeholder);
+    const arg = this.#args[argIndex];
+    if (!(arg instanceof ParamArg) && typeof arg != 'number') {
+      throw Error(`Expected argument at index ${paramIndex} to be a number`);
     }
-    if (typeof arg != 'number') {
-      throw Error(`Expected argument at index ${i} to be a number`);
-    }
-    return arg;
+    return argIndex;
   }
 
-  toStringArg(params: any, placeholder: string, i: number): string {
+  toQueryArg(params: any, argIndex: number): string | number {
+    const arg = this.#args[argIndex];
+    return arg instanceof ParamArg ? params[arg.name] : arg;
+  }
+
+  toStringIndex(placeholder: string, paramIndex: number): number {
     const periodOffset = placeholder.indexOf('.');
     if (placeholder.substring(periodOffset) != this.#stringTag) {
-      throw Error(`Argument at index ${i} not specified via ` + ARG_FUNCTIONS);
+      throw Error(
+        `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
+      );
     }
-    let arg = this.#args[parseInt(placeholder.substring(0, periodOffset))];
-    if (arg instanceof ParamArg) {
-      arg = params[arg.name];
+    const argIndex = parseInt(placeholder.substring(0, periodOffset));
+    const arg = this.#args[parseInt(placeholder.substring(0, periodOffset))];
+    if (!(arg instanceof ParamArg) && typeof arg != 'string') {
+      throw Error(`Expected argument at index ${paramIndex} to be a string`);
     }
-    if (typeof arg != 'string') {
-      throw Error(`Expected argument at index ${i} to be a string`);
-    }
-    return arg;
+    return argIndex;
   }
 
   #nextNum(): number {
