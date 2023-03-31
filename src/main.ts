@@ -59,9 +59,9 @@ export class ParameterizedInsert<DB, P> {
         sql: compiledQuery.sql,
         parameters: compiledQuery.parameters.map((codedArg, i) =>
           typeof codedArg == 'string'
-            ? this.#argList.toStringIndex(codedArg, i)
+            ? this.#argList.stringToIndex(codedArg, i)
             : typeof codedArg == 'number'
-            ? this.#argList.toNumberIndex(codedArg, i)
+            ? this.#argList.numberToIndex(codedArg, i)
             : codedArg
         ),
       };
@@ -111,7 +111,7 @@ class ArgList {
     return this.#args.length;
   }
 
-  toNumberIndex(placeholder: number, paramIndex: number): number {
+  numberToIndex(placeholder: number, paramIndex: number): number {
     if ((placeholder % 1).toFixed(FIXED_DECIMAL_WIDTH) != this.#stringTag) {
       throw Error(
         `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
@@ -125,12 +125,7 @@ class ArgList {
     return argIndex;
   }
 
-  toQueryArg(params: any, argIndex: number): string | number {
-    const arg = this.#args[argIndex];
-    return arg instanceof ParamArg ? params[arg.name] : arg;
-  }
-
-  toStringIndex(placeholder: string, paramIndex: number): number {
+  stringToIndex(placeholder: string, paramIndex: number): number {
     const periodOffset = placeholder.indexOf('.');
     if (placeholder.substring(periodOffset) != this.#stringTag) {
       throw Error(
@@ -143,6 +138,11 @@ class ArgList {
       throw Error(`Expected argument at index ${paramIndex} to be a string`);
     }
     return argIndex;
+  }
+
+  toQueryArg(params: any, argIndex: number): string | number {
+    const arg = this.#args[argIndex];
+    return arg instanceof ParamArg ? params[arg.name] : arg;
   }
 
   #nextNum(): number {
