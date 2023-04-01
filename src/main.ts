@@ -58,9 +58,7 @@ export class ParameterizedInsert<DB, P> {
         query: compiledQuery.query,
         sql: compiledQuery.sql,
         parameters: compiledQuery.parameters.map((codedArg, i) =>
-          typeof codedArg == 'string'
-            ? this.#argList.stringToIndex(codedArg, i)
-            : typeof codedArg == 'number'
+          typeof codedArg == 'number'
             ? this.#argList.numberToIndex(codedArg, i)
             : codedArg
         ),
@@ -83,7 +81,7 @@ class ParamArg {
 
 class ArgList {
   #numericTag = Math.random();
-  #stringTag = Math.random().toFixed(FIXED_DECIMAL_WIDTH).substring(1);
+  #stringTag = this.#numericTag.toFixed(FIXED_DECIMAL_WIDTH);
   #paramCount = 0;
   #args: any[] = [];
 
@@ -99,12 +97,12 @@ class ArgList {
 
   nextStrParam(name: string): string {
     this.#args.push(new ParamArg(name));
-    return this.#nextStr();
+    return this.#nextNum() as unknown as string;
   }
 
   nextStrValue(value: string): string {
     this.#args.push(value);
-    return this.#nextStr();
+    return this.#nextNum() as unknown as string;
   }
 
   size(): number {
@@ -117,27 +115,7 @@ class ArgList {
         `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
       );
     }
-    const argIndex = Math.floor(placeholder);
-    const arg = this.#args[argIndex];
-    if (!(arg instanceof ParamArg) && typeof arg != 'number') {
-      throw Error(`Expected argument at index ${paramIndex} to be a number`);
-    }
-    return argIndex;
-  }
-
-  stringToIndex(placeholder: string, paramIndex: number): number {
-    const periodOffset = placeholder.indexOf('.');
-    if (placeholder.substring(periodOffset) != this.#stringTag) {
-      throw Error(
-        `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
-      );
-    }
-    const argIndex = parseInt(placeholder.substring(0, periodOffset));
-    const arg = this.#args[parseInt(placeholder.substring(0, periodOffset))];
-    if (!(arg instanceof ParamArg) && typeof arg != 'string') {
-      throw Error(`Expected argument at index ${paramIndex} to be a string`);
-    }
-    return argIndex;
+    return Math.floor(placeholder);
   }
 
   toQueryArg(params: any, argIndex: number): string | number {
@@ -147,9 +125,5 @@ class ArgList {
 
   #nextNum(): number {
     return this.#paramCount++ + this.#numericTag;
-  }
-
-  #nextStr(): string {
-    return this.#paramCount++ + this.#stringTag;
   }
 }
