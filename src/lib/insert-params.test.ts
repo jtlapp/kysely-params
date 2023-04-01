@@ -14,10 +14,10 @@ beforeEach(() => resetDB(db));
 afterAll(() => destroyDB(db));
 
 it('parameterizes inserted strings and numbers with non-null values', async () => {
-  type Params = {
+  interface Params {
     handleParam: string;
     birthYearParam: number | null;
-  };
+  }
   const user = {
     name: 'John Smith',
     // leave out nickname
@@ -52,10 +52,10 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
 });
 
 it('parameterizes inserted strings and numbers with null values', async () => {
-  type Params = {
+  interface Params {
     nicknameParam: string | null;
     birthYearParam: number | null;
-  };
+  }
   const user = {
     name: 'John Smith',
     nickname: null,
@@ -91,9 +91,9 @@ it('parameterizes inserted strings and numbers with null values', async () => {
 });
 
 it('parameterizes a generated column, with multiple executions', async () => {
-  type Params = {
+  interface Params {
     idParam?: number;
-  };
+  }
   const user = {
     handle: 'jsmith',
     name: 'John Smith',
@@ -138,12 +138,12 @@ it('parameterizes a generated column, with multiple executions', async () => {
 });
 
 it('parameterizes single query performing multiple insertions', async () => {
-  type Params = {
+  interface Params {
     nameParam1and2: string;
     nicknameParam1: string;
     birthYearParam1: number;
     birthYearParam2: number;
-  };
+  }
   const user1 = {
     name: 'John Smith',
     nickname: 'Johny',
@@ -198,10 +198,10 @@ it('parameterizes single query performing multiple insertions', async () => {
 });
 
 ignore('disallows incompatible parameter types', () => {
-  type InvalidParams = {
+  interface InvalidParams {
     handleParam: number;
     nameParam: string | null;
-  };
+  }
 
   db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
     //@ts-expect-error - invalid parameter type
@@ -221,9 +221,9 @@ ignore('disallows incompatible parameter types', () => {
 });
 
 ignore('restricts a generated column parameter', async () => {
-  type InvalidParams = {
+  interface InvalidParams {
     idParam?: string;
-  };
+  }
 
   db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
     //@ts-expect-error - invalid parameter type
@@ -236,10 +236,10 @@ ignore('restricts a generated column parameter', async () => {
 });
 
 ignore('restricts provided parameters', async () => {
-  type ValidParams = {
+  interface ValidParams {
     handleParam: string;
     birthYearParam: number | null;
-  };
+  }
 
   const parameterization = db
     .insertInto('users')
