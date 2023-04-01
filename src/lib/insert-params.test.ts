@@ -25,7 +25,7 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
     birthYear: 1990,
   };
 
-  const parameterized = db
+  const parameterization = db
     .insertInto('users')
     .parameterize<Params>(({ qb, p }) =>
       qb
@@ -36,7 +36,7 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
         })
         .returning('id')
     );
-  const result = await parameterized.executeTakeFirst(db, {
+  const result = await parameterization.executeTakeFirst(db, {
     handleParam: user.handle,
     birthYearParam: user.birthYear,
   });
@@ -63,7 +63,7 @@ it('parameterizes inserted strings and numbers with null values', async () => {
     birthYear: null,
   };
 
-  const parameterized = db
+  const parameterization = db
     .insertInto('users')
     .parameterize<Params>(({ qb, p }) =>
       qb
@@ -75,7 +75,7 @@ it('parameterizes inserted strings and numbers with null values', async () => {
         })
         .returning('id')
     );
-  const result = await parameterized.executeTakeFirst(db, {
+  const result = await parameterization.executeTakeFirst(db, {
     nicknameParam: user.nickname,
     birthYearParam: user.birthYear,
   });
@@ -88,6 +88,68 @@ it('parameterizes inserted strings and numbers with null values', async () => {
     .where('handle', '=', user.handle)
     .executeTakeFirst();
   expect(readUser).toEqual({ ...user, id: 1 });
+});
+
+it('parameterizes and generates a generated column', async () => {
+  type Params = {
+    idParam?: number;
+  };
+  const user = {
+    handle: 'jsmith',
+    name: 'John Smith',
+    nickname: null,
+    birthYear: null,
+  };
+
+  const parameterization = db
+    .insertInto('users')
+    .parameterize<Params>(({ qb, p }) =>
+      qb.values({
+        id: p.param('idParam'),
+        name: user.name,
+        handle: user.handle,
+      })
+    );
+  const result = await parameterization.executeTakeFirst(db, {});
+
+  expect(result).toBeUndefined();
+  const readUser = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('handle', '=', user.handle)
+    .executeTakeFirst();
+  expect(readUser).toEqual({ ...user, id: 1 });
+});
+
+it('parameterizes and assigns a generated column', async () => {
+  type Params = {
+    idParam?: number;
+  };
+  const user = {
+    handle: 'jsmith',
+    name: 'John Smith',
+    nickname: null,
+    birthYear: null,
+  };
+
+  const parameterization = db
+    .insertInto('users')
+    .parameterize<Params>(({ qb, p }) =>
+      qb.values({
+        id: p.param('idParam'),
+        name: user.name,
+        handle: user.handle,
+      })
+    );
+  const result = await parameterization.executeTakeFirst(db, { idParam: 100 });
+
+  expect(result).toBeUndefined();
+  const readUser = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('handle', '=', user.handle)
+    .executeTakeFirst();
+  expect(readUser).toEqual({ ...user, id: 100 });
 });
 
 it('parameterizes single query with multiple insertions', async () => {
@@ -110,7 +172,7 @@ it('parameterizes single query with multiple insertions', async () => {
     birthYear: 2000,
   };
 
-  const parameterized = db
+  const parameterization = db
     .insertInto('users')
     .parameterize<Params>(({ qb, p }) =>
       qb
@@ -130,7 +192,7 @@ it('parameterizes single query with multiple insertions', async () => {
         ])
         .returning('id')
     );
-  const result = await parameterized.execute(db, {
+  const result = await parameterization.execute(db, {
     nameParam1and2: user1.name,
     nicknameParam1: user1.nickname,
     birthYearParam1: user1.birthYear,
@@ -173,13 +235,28 @@ ignore('disallows incompatible parameter types', () => {
   );
 });
 
+ignore('restricts a generated column parameter', async () => {
+  type InvalidParams = {
+    idParam?: string;
+  };
+
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+    //@ts-expect-error - invalid parameter type
+    qb.values({
+      id: p.param('idParam'),
+      name: 'John Smith',
+      handle: 'jsmith',
+    })
+  );
+});
+
 ignore('restricts provided parameters', async () => {
   type ValidParams = {
     handleParam: string;
     birthYearParam: number | null;
   };
 
-  const parameterization = await db
+  const parameterization = db
     .insertInto('users')
     .parameterize<ValidParams>(({ qb, p }) =>
       qb.values({
