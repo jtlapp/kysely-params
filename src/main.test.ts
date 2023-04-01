@@ -20,14 +20,19 @@ it('parameterizes insert queries', async () => {
   };
   const parameterized = db
     .insertInto('users')
-    .parameterize<{ handle: string }>(({ qb, strValue, strParam }) =>
-      qb.values({
-        handle: strParam('handle'),
-        name: strValue('John Smith'),
-        email: strValue('jsmith@abc.def'),
-      })
+    .parameterize<{ handleParam: string }>(({ qb, p }) =>
+      qb
+        .values({
+          handle: p.param('handleParam'),
+          name: 'John Smith',
+          email: 'jsmith@abc.def',
+        })
+        .returning('id')
     );
-  await parameterized.execute(db, { handle: 'js' });
+  const result = await parameterized.executeTakeFirst(db, {
+    handleParam: 'js',
+  });
+  expect(result).toEqual({ id: 1 });
 
   const readUser = await db
     .selectFrom('users')

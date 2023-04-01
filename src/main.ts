@@ -1,129 +1,78 @@
-import { CompiledQuery, InsertQueryBuilder, Kysely } from 'kysely';
-
-const FIXED_DECIMAL_WIDTH = 8;
-const ARG_FUNCTIONS = 'numValue(), strValue(), numParam(), or strParam()';
+import {
+  CompiledQuery,
+  Compilable,
+  Kysely,
+  QueryResult,
+  InsertQueryBuilder,
+} from 'kysely';
 
 declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
   interface InsertQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P>(
+    parameterize<P extends Record<string, any>>(
       factory: ParameterizedInsertFactory<DB, TB, O, P>
-    ): ParameterizedInsert<DB, P>;
+    ): ParameterizedQuery<P, O>;
   }
 }
 InsertQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
   O,
-  P
->(
-  this: InsertQueryBuilder<DB, TB, O>,
-  factory: ParameterizedInsertFactory<DB, TB, O, P>
-) {
-  return new ParameterizedInsert<DB, P>(this, factory);
+  P extends Record<string, any>
+>(factory: ParameterizedInsertFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
+  return new ParameterizedQuery(
+    factory({ qb: this, p: new QueryParameterizer<P>() })
+  );
 };
 
-export type ParameterizedInsertFactory<DB, TB extends keyof DB, O, P> = (args: {
-  qb: InsertQueryBuilder<DB, TB, O>;
-  numValue: (value: number) => number;
-  strValue: (value: string) => string;
-  numParam: (name: keyof P & string) => number;
-  strParam: (name: keyof P & string) => string;
-}) => InsertQueryBuilder<DB, TB, O>;
+interface ParameterizedInsertFactory<
+  DB,
+  TB extends keyof DB,
+  O,
+  P extends Record<string, any>
+> {
+  (args: {
+    qb: InsertQueryBuilder<DB, TB, O>;
+    p: QueryParameterizer<P>;
+  }): Compilable<O>;
+}
 
-export class ParameterizedInsert<DB, P> {
-  readonly #argList = new ArgList();
-  readonly #qb: InsertQueryBuilder<any, any, any>;
+class ParamArg<P extends Record<string, any>> {
+  constructor(readonly name: keyof P & string) {}
+}
+
+// TODO: make this a separate function if class not needed for insert values
+class QueryParameterizer<P> {
+  param<T>(name: keyof P & string): T {
+    return new ParamArg(name) as unknown as T;
+  }
+}
+
+class ParameterizedQuery<P extends Record<string, any>, O> {
+  readonly #qb: Compilable<O>;
   #compiledQuery?: CompiledQuery;
 
-  constructor(
-    qb: InsertQueryBuilder<any, any, any>,
-    factory: ParameterizedInsertFactory<any, any, any, P>
-  ) {
-    this.#qb = factory({
-      qb,
-      numValue: this.#argList.nextNumValue.bind(this.#argList),
-      strValue: this.#argList.nextStrValue.bind(this.#argList),
-      numParam: this.#argList.nextNumParam.bind(this.#argList),
-      strParam: this.#argList.nextStrParam.bind(this.#argList),
-    });
+  constructor(qb: Compilable<O>) {
+    this.#qb = qb;
   }
 
-  async execute(db: Kysely<DB>, params: P) {
+  async execute<DB>(db: Kysely<DB>, params: P): Promise<QueryResult<O>> {
     if (this.#compiledQuery === undefined) {
-      const compiledQuery = this.#qb.compile();
-      if (compiledQuery.parameters.length !== this.#argList.size()) {
-        throw Error('Query has arguments not specified via ' + ARG_FUNCTIONS);
-      }
-      this.#compiledQuery = {
-        query: compiledQuery.query,
-        sql: compiledQuery.sql,
-        parameters: compiledQuery.parameters.map((codedArg, i) =>
-          typeof codedArg == 'number'
-            ? this.#argList.numberToIndex(codedArg, i)
-            : codedArg
-        ),
-      };
+      this.#compiledQuery = this.#qb.compile();
     }
-    const runnable: Readonly<CompiledQuery> = {
+    return db.executeQuery({
       query: this.#compiledQuery.query,
       sql: this.#compiledQuery.sql,
       parameters: this.#compiledQuery.parameters.map((arg) =>
-        typeof arg == 'number' ? this.#argList.toQueryArg(params, arg) : arg
+        arg instanceof ParamArg ? params[arg.name] : arg
       ),
-    };
-    return db.executeQuery(runnable);
-  }
-}
-
-class ParamArg {
-  constructor(readonly name: string) {}
-}
-
-class ArgList {
-  #numericTag = Math.random();
-  #stringTag = this.#numericTag.toFixed(FIXED_DECIMAL_WIDTH);
-  #paramCount = 0;
-  #args: any[] = [];
-
-  nextNumParam(name: string): number {
-    this.#args.push(new ParamArg(name));
-    return this.#nextNum();
+    });
   }
 
-  nextNumValue(value: number): number {
-    this.#args.push(value);
-    return this.#nextNum();
-  }
-
-  nextStrParam(name: string): string {
-    this.#args.push(new ParamArg(name));
-    return this.#nextNum() as unknown as string;
-  }
-
-  nextStrValue(value: string): string {
-    this.#args.push(value);
-    return this.#nextNum() as unknown as string;
-  }
-
-  size(): number {
-    return this.#args.length;
-  }
-
-  numberToIndex(placeholder: number, paramIndex: number): number {
-    if ((placeholder % 1).toFixed(FIXED_DECIMAL_WIDTH) != this.#stringTag) {
-      throw Error(
-        `Argument at index ${paramIndex} not specified via ` + ARG_FUNCTIONS
-      );
-    }
-    return Math.floor(placeholder);
-  }
-
-  toQueryArg(params: any, argIndex: number): string | number {
-    const arg = this.#args[argIndex];
-    return arg instanceof ParamArg ? params[arg.name] : arg;
-  }
-
-  #nextNum(): number {
-    return this.#paramCount++ + this.#numericTag;
+  async executeTakeFirst<DB>(
+    db: Kysely<DB>,
+    params: P
+  ): Promise<O | undefined> {
+    const result = await this.execute(db, params);
+    return result.rows.length > 0 ? result.rows[0] : undefined;
   }
 }
