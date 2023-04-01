@@ -94,18 +94,6 @@ it('parameterizes "where" selections using "in" operator', async () => {
   ]);
 });
 
-ignore('nullable parameters are not allowed', () => {
-  interface InvalidParams {
-    nicknameParam: string | null;
-  }
-  db.selectFrom('users')
-    .selectAll()
-    // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, p }) =>
-      qb.where('nickname', '=', p.param('nicknameParam'))
-    );
-});
-
 ignore('array parameters are not allowed', () => {
   interface InvalidParams {
     birthYearsParam: number[];

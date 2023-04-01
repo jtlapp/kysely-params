@@ -13,18 +13,9 @@ export type NoArrays<T> = {
 };
 
 /**
- * Type that prevents an object from having nullable properties.
- */
-export type NoNulls<T> = {
-  [P in keyof T]: NonNullable<T[P]>;
-};
-
-/**
  * Type representing an object having at least one property and all of
  * whose properties are non-nullable.
  * @typeparam T Object to constrain to being non-empty and non-nullable.
  * @typeparam K Keys of the object to make non-nullable.
  */
-export type NonEmptyNoNullsNoArraysObject<T> = NoNulls<
-  NoArrays<NonEmptyObject<T>>
->;
+export type NonEmptyNoArraysObject<T> = NoArrays<NonEmptyObject<T>>;
