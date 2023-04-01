@@ -1,15 +1,36 @@
+/**
+ * Module providing types common across parameterized queries.
+ */
+
 import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 
+/**
+ * Class representing a parameterized argument.
+ * @paramtype P Record characterizing the parameter names and types.
+ */
 class ParamArg<P extends Record<string, any>> {
   constructor(readonly name: keyof P & string) {}
 }
 
+/**
+ * Class for parameterizing queries.
+ * @paramtype P Record characterizing the available parameter names and types.
+ */
 export class QueryParameterizer<P> {
+  /**
+   * Returns a parameterized argument.
+   * @param name Parameter name.
+   * @returns Parameter having the given name and the type assigned to that
+   *  name in P.
+   */
   param<N extends keyof P & string>(name: N): P[N] {
     return new ParamArg(name) as unknown as P[N];
   }
 }
 
+/**
+ * Class representing a parameterized query.
+ */
 export class ParameterizedQuery<P extends Record<string, any>, O> {
   readonly #qb: Compilable<O>;
   #compiledQuery?: CompiledQuery;
@@ -18,6 +39,12 @@ export class ParameterizedQuery<P extends Record<string, any>, O> {
     this.#qb = qb;
   }
 
+  /**
+   * Executes the query, returning all results.
+   * @param db The Kysely database instance.
+   * @param params Query parameter values.
+   * @returns Query result.
+   */
   async execute<DB>(db: Kysely<DB>, params: P): Promise<QueryResult<O>> {
     if (this.#compiledQuery === undefined) {
       this.#compiledQuery = this.#qb.compile();
@@ -31,6 +58,12 @@ export class ParameterizedQuery<P extends Record<string, any>, O> {
     });
   }
 
+  /**
+   * Executes the query, returning the first result.
+   * @param db The Kysely database instance.
+   * @param params Query parameter values.
+   * @returns First query result, or undefined if there are no results.
+   */
   async executeTakeFirst<DB>(
     db: Kysely<DB>,
     params: P

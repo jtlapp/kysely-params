@@ -1,8 +1,15 @@
+/**
+ * Module enabling insertions to be parameterized.
+ */
+
 import { Compilable, InsertQueryBuilder } from 'kysely';
 
 import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
 import { NonEmptyObject } from './internal-types';
 
+/**
+ * Adds a `parameterize` method to `InsertQueryBuilder`.
+ */
 declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
   interface InsertQueryBuilder<DB, TB extends keyof DB, O> {
     parameterize<P extends NonEmptyObject<P>>(
@@ -21,6 +28,9 @@ InsertQueryBuilder.prototype.parameterize = function <
   );
 };
 
+/**
+ * Factory function for creating a parameterized `InsertQueryBuilder`.
+ */
 interface ParameterizedInsertFactory<
   DB,
   TB extends keyof DB,
