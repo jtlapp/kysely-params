@@ -1,8 +1,7 @@
 /**
- * Module enabling selections to be parameterized. Parameters cannot take null
- * values because null checks requires special SQL syntax. Parameters also
- * cannot take array values because Kysely must compile queries for the size
- * of the array, but you can parameterize the elements of an array.
+ * Module enabling selections to be parameterized. Parameters cannot take
+ * array values because Kysely must compile queries for the size of the array
+ * The elements of a fixed-length array can be parameterized, however.
  */
 
 import { Compilable, SelectQueryBuilder } from 'kysely';

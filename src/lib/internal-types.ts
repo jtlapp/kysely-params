@@ -14,8 +14,7 @@ export type NoArrays<T> = {
 
 /**
  * Type representing an object having at least one property and all of
- * whose properties are non-nullable.
- * @typeparam T Object to constrain to being non-empty and non-nullable.
- * @typeparam K Keys of the object to make non-nullable.
+ * whose properties are not arrays.
+ * @typeparam T Object to constrain to being non-empty having no arrays.
  */
 export type NonEmptyNoArraysObject<T> = NoArrays<NonEmptyObject<T>>;
