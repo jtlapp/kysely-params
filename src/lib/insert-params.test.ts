@@ -3,6 +3,7 @@ import { Kysely } from 'kysely';
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
 import '../lib/insert-params';
+import { ignore } from '../utils/test-utils';
 
 let db: Kysely<Database>;
 
@@ -147,4 +148,84 @@ it('parameterizes single query with multiple insertions', async () => {
     { ...user1, id: 1 },
     { ...user2, id: 2 },
   ]);
+});
+
+ignore('disallows incompatible parameter types', () => {
+  type InvalidParams = {
+    handleParam: number;
+    nameParam: string | null;
+  };
+
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+    //@ts-expect-error - invalid parameter type
+    qb.values({
+      handle: p.param('handleParam'),
+      name: 'John Smith',
+    })
+  );
+
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+    qb.values({
+      handle: 'jsmith',
+      //@ts-expect-error - invalid parameter type
+      name: p.param('nameParam'),
+    })
+  );
+});
+
+ignore('restricts provided parameters', async () => {
+  type ValidParams = {
+    handleParam: string;
+    birthYearParam: number | null;
+  };
+
+  const parameterization = await db
+    .insertInto('users')
+    .parameterize<ValidParams>(({ qb, p }) =>
+      qb.values({
+        handle: p.param('handleParam'),
+        name: 'John Smith',
+        birthYear: p.param('birthYearParam'),
+      })
+    );
+
+  await parameterization.execute(db, {
+    //@ts-expect-error - invalid parameter name
+    invalidParam: 'invalid',
+  });
+  await parameterization.executeTakeFirst(db, {
+    //@ts-expect-error - invalid parameter name
+    invalidParam: 'invalid',
+  });
+
+  await parameterization.execute(db, {
+    //@ts-expect-error - invalid parameter type
+    birthYearParam: '2020',
+    handleParam: 'jsmith',
+  });
+  await parameterization.executeTakeFirst(db, {
+    //@ts-expect-error - invalid parameter type
+    birthYearParam: '2020',
+    handleParam: 'jsmith',
+  });
+
+  await parameterization.execute(db, {
+    //@ts-expect-error - invalid parameter type
+    handleParam: null,
+    birthYearParam: null,
+  });
+  await parameterization.executeTakeFirst(db, {
+    //@ts-expect-error - invalid parameter type
+    handleParam: null,
+    birthYearParam: null,
+  });
+
+  //@ts-expect-error - missing parameter name
+  await parameterization.execute(db, {
+    birthYearParam: 2020,
+  });
+  //@ts-expect-error - missing parameter name
+  await parameterization.executeTakeFirst(db, {
+    birthYearParam: 2020,
+  });
 });

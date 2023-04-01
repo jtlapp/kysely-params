@@ -5,8 +5,8 @@ class ParamArg<P extends Record<string, any>> {
 }
 
 export class QueryParameterizer<P> {
-  param<T>(name: keyof P & string): T {
-    return new ParamArg(name) as unknown as T;
+  param<N extends keyof P & string>(name: N): P[N] {
+    return new ParamArg(name) as unknown as P[N];
   }
 }
 
