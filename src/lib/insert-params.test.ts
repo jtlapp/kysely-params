@@ -1,8 +1,8 @@
 import { Kysely } from 'kysely';
 
-import './main';
-import { createDB, resetDB, destroyDB } from './utils/test-setup';
-import { Database } from './utils/test-tables';
+import '../index';
+import { createDB, resetDB, destroyDB } from '../utils/test-setup';
+import { Database } from '../utils/test-tables';
 
 let db: Kysely<Database>;
 
