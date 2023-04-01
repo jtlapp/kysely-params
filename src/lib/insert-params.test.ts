@@ -90,7 +90,7 @@ it('parameterizes inserted strings and numbers with null values', async () => {
   expect(readUser).toEqual({ ...user, id: 1 });
 });
 
-it('parameterizes and generates a generated column', async () => {
+it('parameterizes a generated column, with multiple executions', async () => {
   type Params = {
     idParam?: number;
   };
@@ -110,49 +110,34 @@ it('parameterizes and generates a generated column', async () => {
         handle: user.handle,
       })
     );
-  const result = await parameterization.executeTakeFirst(db, {});
 
-  expect(result).toBeUndefined();
+  // First execution not assigning generated column.
+
+  const result1 = await parameterization.executeTakeFirst(db, {});
+  expect(result1).toBeUndefined();
   const readUser = await db
     .selectFrom('users')
     .selectAll()
     .where('handle', '=', user.handle)
     .executeTakeFirst();
   expect(readUser).toEqual({ ...user, id: 1 });
-});
 
-it('parameterizes and assigns a generated column', async () => {
-  type Params = {
-    idParam?: number;
-  };
-  const user = {
-    handle: 'jsmith',
-    name: 'John Smith',
-    nickname: null,
-    birthYear: null,
-  };
+  // Second execution assigning generated column.
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, p }) =>
-      qb.values({
-        id: p.param('idParam'),
-        name: user.name,
-        handle: user.handle,
-      })
-    );
   const result = await parameterization.executeTakeFirst(db, { idParam: 100 });
-
   expect(result).toBeUndefined();
-  const readUser = await db
+  const readUsers = await db
     .selectFrom('users')
     .selectAll()
     .where('handle', '=', user.handle)
-    .executeTakeFirst();
-  expect(readUser).toEqual({ ...user, id: 100 });
+    .execute();
+  expect(readUsers).toEqual([
+    { ...user, id: 1 },
+    { ...user, id: 100 },
+  ]);
 });
 
-it('parameterizes single query with multiple insertions', async () => {
+it('parameterizes single query performing multiple insertions', async () => {
   type Params = {
     nameParam1and2: string;
     nicknameParam1: string;
@@ -192,6 +177,7 @@ it('parameterizes single query with multiple insertions', async () => {
         ])
         .returning('id')
     );
+
   const result = await parameterization.execute(db, {
     nameParam1and2: user1.name,
     nicknameParam1: user1.nickname,
@@ -200,7 +186,6 @@ it('parameterizes single query with multiple insertions', async () => {
   });
 
   expect(result.rows).toEqual([{ id: 1 }, { id: 2 }]);
-
   const readUsers = await db
     .selectFrom('users')
     .selectAll()
