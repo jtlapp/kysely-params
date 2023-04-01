@@ -11,7 +11,8 @@ export interface Users {
   id: Generated<number>;
   handle: string;
   name: string;
-  email: string;
+  nickname: string | null;
+  birthYear: number | null;
 }
 
 export async function createTables(db: Kysely<Database>) {
@@ -20,7 +21,8 @@ export async function createTables(db: Kysely<Database>) {
     .addColumn('id', 'integer', (col) => col.autoIncrement().primaryKey())
     .addColumn('handle', 'varchar(255)', (col) => col.notNull())
     .addColumn('name', 'varchar(255)', (col) => col.notNull())
-    .addColumn('email', 'varchar(255)')
+    .addColumn('nickname', 'varchar(255)')
+    .addColumn('birthYear', 'integer')
     .execute();
 
   return db;
