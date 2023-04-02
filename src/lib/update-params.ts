@@ -7,7 +7,7 @@
 import { Compilable, UpdateQueryBuilder } from 'kysely';
 
 import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
-import { NonEmptyNoArraysObject } from './internal-types';
+import { NoArraysObject } from './internal-types';
 
 /**
  * Adds a `parameterize` method to `UpdateQueryBuilder`.
@@ -19,7 +19,7 @@ declare module 'kysely/dist/cjs/query-builder/update-query-builder' {
     TB extends keyof DB,
     O
   > {
-    parameterize<P extends NonEmptyNoArraysObject<P>>(
+    parameterize<P extends NoArraysObject<P>>(
       factory: ParameterizedSelectFactory<DB, UT, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -29,7 +29,7 @@ UpdateQueryBuilder.prototype.parameterize = function <
   UT extends keyof DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 >(
   factory: ParameterizedSelectFactory<DB, UT, TB, O, P>
 ): ParameterizedQuery<P, O> {
@@ -47,7 +47,7 @@ interface ParameterizedSelectFactory<
   UT extends keyof DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 > {
   (args: {
     qb: UpdateQueryBuilder<DB, UT, TB, O>;

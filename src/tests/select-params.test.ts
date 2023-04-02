@@ -112,6 +112,21 @@ it('parameterizes "where" selections using "in" operator', async () => {
   ]);
 });
 
+it('parameterizes without defined parameters', async () => {
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .selectFrom('users')
+    .selectAll()
+    .parameterize(({ qb }) =>
+      qb
+        .where('nickname', '=', user2.nickname)
+        .where('birthYear', '=', user1.birthYear)
+    );
+  const result2 = await parameterization.executeTakeFirst(db, {});
+  expect(result2).toEqual({ ...user1, id: 1 });
+});
+
 ignore('array parameters are not allowed', () => {
   interface InvalidParams {
     birthYearsParam: number[];
@@ -186,4 +201,8 @@ ignore('restricts provided parameters', async () => {
   await parameterization.executeTakeFirst(db, {
     birthYearParam: 2020,
   });
+  //@ts-expect-error - missing parameter name
+  await parameterization.execute(db, {});
+  //@ts-expect-error - missing parameter name
+  await parameterization.executeTakeFirst(db, {});
 });

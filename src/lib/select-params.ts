@@ -8,14 +8,14 @@
 import { Compilable, SelectQueryBuilder } from 'kysely';
 
 import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
-import { NonEmptyNoArraysObject } from './internal-types';
+import { NoArraysObject } from './internal-types';
 
 /**
  * Adds a `parameterize` method to `SelectQueryBuilder`.
  */
 declare module 'kysely/dist/cjs/query-builder/select-query-builder' {
   interface SelectQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NonEmptyNoArraysObject<P>>(
+    parameterize<P extends NoArraysObject<P>>(
       factory: ParameterizedSelectFactory<DB, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -24,7 +24,7 @@ SelectQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 >(factory: ParameterizedSelectFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
   const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
@@ -39,7 +39,7 @@ interface ParameterizedSelectFactory<
   DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 > {
   (args: {
     qb: SelectQueryBuilder<DB, TB, O>;

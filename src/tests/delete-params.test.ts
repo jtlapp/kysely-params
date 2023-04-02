@@ -97,6 +97,19 @@ it('parameterizes deletions using "in" operator', async () => {
   expect(users).toEqual([{ ...user3, id: 3 }]);
 });
 
+it('parameterizes without defined parameters', async () => {
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .deleteFrom('users')
+    .parameterize(({ qb }) => qb.where('birthYear', '=', 1990));
+  const results = await parameterization.execute(db, {});
+  expect(Number(results?.numAffectedRows)).toEqual(2);
+
+  const users = await db.selectFrom('users').selectAll().execute();
+  expect(users).toEqual([{ ...user1, id: 1 }]);
+});
+
 ignore('array parameters are not allowed', () => {
   interface InvalidParams {
     birthYearsParam: number[];
@@ -170,4 +183,8 @@ ignore('restricts provided parameters', async () => {
   await parameterization.executeTakeFirst(db, {
     birthYearParam: 2020,
   });
+  //@ts-expect-error - missing parameter name
+  await parameterization.execute(db, {});
+  //@ts-expect-error - missing parameter name
+  await parameterization.executeTakeFirst(db, {});
 });

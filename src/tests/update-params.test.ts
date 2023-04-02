@@ -111,6 +111,30 @@ it('parameterizes update values accepting nulls', async () => {
   ]);
 });
 
+it('parameterizes without defined parameters', async () => {
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db.updateTable('users').parameterize(({ qb }) =>
+    qb
+      .set({
+        birthYear: 2000,
+        handle: 'newHandle',
+      })
+      .where('nickname', '=', 'Johnny')
+  );
+
+  const result1 = await parameterization.execute(db, {});
+
+  expect(Number(result1.numAffectedRows)).toEqual(2);
+
+  const users = await db.selectFrom('users').selectAll().execute();
+  expect(users).toEqual([
+    { ...user1, id: 1, handle: 'newHandle', birthYear: 2000 },
+    { ...user2, id: 2, handle: 'newHandle', birthYear: 2000 },
+    { ...user3, id: 3, handle: 'jdoe', birthYear: 1990 },
+  ]);
+});
+
 ignore('disallows incompatible set parameter types', () => {
   interface InvalidParams {
     handleParam: number;
@@ -227,4 +251,8 @@ ignore('restricts provided parameters', async () => {
   await parameterization.executeTakeFirst(db, {
     birthYearParam: 2020,
   });
+  //@ts-expect-error - missing parameter name
+  await parameterization.execute(db, {});
+  //@ts-expect-error - missing parameter name
+  await parameterization.executeTakeFirst(db, {});
 });

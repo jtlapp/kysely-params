@@ -5,14 +5,14 @@
 import { Compilable, InsertQueryBuilder } from 'kysely';
 
 import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
-import { NonEmptyNoArraysObject } from './internal-types';
+import { NoArraysObject } from './internal-types';
 
 /**
  * Adds a `parameterize` method to `InsertQueryBuilder`.
  */
 declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
   interface InsertQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NonEmptyNoArraysObject<P>>(
+    parameterize<P extends NoArraysObject<P>>(
       factory: ParameterizedInsertFactory<DB, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -21,7 +21,7 @@ InsertQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 >(factory: ParameterizedInsertFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
   const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
@@ -36,7 +36,7 @@ interface ParameterizedInsertFactory<
   DB,
   TB extends keyof DB,
   O,
-  P extends NonEmptyNoArraysObject<P>
+  P extends NoArraysObject<P>
 > {
   (args: {
     qb: InsertQueryBuilder<DB, TB, O>;

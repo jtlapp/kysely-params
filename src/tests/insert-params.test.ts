@@ -197,6 +197,29 @@ it('parameterizes single query performing multiple insertions', async () => {
   ]);
 });
 
+it('parameterizes without defined parameters', async () => {
+  const user = {
+    name: 'John Smith',
+    nickname: null,
+    handle: 'jsmith',
+    birthYear: null,
+  };
+
+  const parameterization = db
+    .insertInto('users')
+    .parameterize(({ qb }) => qb.values(user).returning('id'));
+
+  const result = await parameterization.executeTakeFirst(db, {});
+  expect(result).toEqual({ id: 1 });
+
+  const readUser = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('handle', '=', user.handle)
+    .executeTakeFirst();
+  expect(readUser).toEqual({ ...user, id: 1 });
+});
+
 ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     handleParam: number;
@@ -290,4 +313,8 @@ ignore('restricts provided parameters', async () => {
   await parameterization.executeTakeFirst(db, {
     birthYearParam: 2020,
   });
+  //@ts-expect-error - missing parameter name
+  await parameterization.execute(db, {});
+  //@ts-expect-error - missing parameter name
+  await parameterization.executeTakeFirst(db, {});
 });
