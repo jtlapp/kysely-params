@@ -1,7 +1,7 @@
 {
   "name": "ts-play",
-  "version": "0.0.1",
-  "description": "Kysely extension that parameterizes compiled queries",
+  "version": "0.1.0",
+  "description": "Kysely extension for parameterizing compiled queries",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
