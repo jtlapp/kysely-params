@@ -64,6 +64,24 @@ it('parameterizes "where" selections, with multiple executions', async () => {
   expect(result2).toEqual({ ...user1, id: 1 });
 });
 
+it('parameterizes "where" selections for specific columns', async () => {
+  interface Params {
+    handleParam: string;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .selectFrom('users')
+    .select('name')
+    .parameterize<Params>(({ qb, p }) =>
+      qb.where('handle', '=', p.param('handleParam'))
+    );
+  const result1 = await parameterization.executeTakeFirst(db, {
+    handleParam: user3.handle,
+  });
+  expect(result1).toEqual({ name: user3.name });
+});
+
 it('parameterizes "where" selections using "in" operator', async () => {
   interface Params {
     nicknameParam: string;
