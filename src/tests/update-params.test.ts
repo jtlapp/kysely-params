@@ -137,14 +137,14 @@ it('parameterizes without defined parameters', async () => {
 
 ignore('disallows incompatible set parameter types', () => {
   interface InvalidParams {
-    handleParam: number;
-    nameParam: string | null;
+    sourceHandle: number;
+    sourceName: string | null;
   }
 
   db.updateTable('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.set({
-      handle: param('handleParam'),
+      handle: param('sourceHandle'),
       name: 'John Smith',
     })
   );
@@ -153,20 +153,20 @@ ignore('disallows incompatible set parameter types', () => {
     qb.set({
       handle: 'jsmith',
       //@ts-expect-error - invalid parameter type
-      name: param('nameParam'),
+      name: param('sourceName'),
     })
   );
 });
 
 ignore('restricts a set generated column parameter', async () => {
   interface InvalidParams {
-    idParam?: string;
+    sourceId?: string;
   }
 
   db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.values({
-      id: param('idParam'),
+      id: param('sourceId'),
       name: 'John Smith',
       handle: 'jsmith',
     })
@@ -175,33 +175,33 @@ ignore('restricts a set generated column parameter', async () => {
 
 ignore('array parameters are not allowed', () => {
   interface InvalidParams {
-    birthYearsParam: number[];
+    targetBirthYears: number[];
   }
   db.updateTable('users')
     // @ts-expect-error - invalid parameter type
     .parameterize<InvalidParams>(({ qb, param }) =>
       qb
         .set({ nickname: 'newNickname' })
-        .where('birthYear', 'in', param('birthYearsParam'))
+        .where('birthYear', 'in', param('targetBirthYears'))
     );
 });
 
 ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
-    handleParam: number;
+    targetHandle: number;
   }
   db.updateTable('users').parameterize<InvalidParams>(({ qb, param }) =>
     qb
       .set({ nickname: 'newNickname' })
       //@ts-expect-error - invalid parameter type
-      .where('handle', '=', param('handleParam'))
+      .where('handle', '=', param('targetHandle'))
   );
 });
 
 ignore('restricts provided parameters', async () => {
   interface ValidParams {
-    handleParam: string;
-    birthYearParam: number;
+    targetHandle: string;
+    targetBirthYear: number;
   }
 
   const parameterization = db
@@ -209,9 +209,9 @@ ignore('restricts provided parameters', async () => {
     .parameterize<ValidParams>(({ qb, param }) =>
       qb
         .set({ nickname: 'newNickname' })
-        .where('handle', '=', param('handleParam'))
+        .where('handle', '=', param('targetHandle'))
         .where('name', '=', 'John Smith')
-        .where('birthYear', '=', param('birthYearParam'))
+        .where('birthYear', '=', param('targetBirthYear'))
     );
 
   await parameterization.execute(db, {
@@ -225,31 +225,31 @@ ignore('restricts provided parameters', async () => {
 
   await parameterization.execute(db, {
     //@ts-expect-error - invalid parameter type
-    birthYearParam: '2020',
-    handleParam: 'jsmith',
+    targetBirthYear: '2020',
+    targetHandle: 'jsmith',
   });
   await parameterization.executeTakeFirst(db, {
     //@ts-expect-error - invalid parameter type
-    birthYearParam: '2020',
-    handleParam: 'jsmith',
+    targetBirthYear: '2020',
+    targetHandle: 'jsmith',
   });
 
   await parameterization.execute(db, {
     //@ts-expect-error - invalid parameter type
-    handleParam: null,
+    targetHandle: null,
   });
   await parameterization.executeTakeFirst(db, {
     //@ts-expect-error - invalid parameter type
-    handleParam: null,
+    targetHandle: null,
   });
 
   //@ts-expect-error - missing parameter name
   await parameterization.execute(db, {
-    birthYearParam: 2020,
+    targetBirthYear: 2020,
   });
   //@ts-expect-error - missing parameter name
   await parameterization.executeTakeFirst(db, {
-    birthYearParam: 2020,
+    targetBirthYear: 2020,
   });
   //@ts-expect-error - missing parameter name
   await parameterization.execute(db, {});
