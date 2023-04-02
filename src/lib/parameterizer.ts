@@ -33,7 +33,7 @@ export class QueryParameterizer<P> {
  */
 export class ParameterizedQuery<P extends Record<string, any>, O> {
   readonly #qb: Compilable<O>;
-  #compiledQuery?: CompiledQuery;
+  #compiledQuery?: CompiledQuery<O>;
 
   constructor(qb: Compilable<O>) {
     this.#qb = qb;
