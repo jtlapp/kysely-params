@@ -45,3 +45,5 @@ declare module 'kysely/dist/cjs/query-builder/update-query-builder' {
     ): ParameterizedQuery<P, O>;
   }
 }
+
+export {};

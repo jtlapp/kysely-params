@@ -1,5 +1,4 @@
-import './lib/extensions';
-
+export * from './lib/extensions';
 export * from './lib/parameterizer';
 export * from './lib/delete-params';
 export * from './lib/insert-params';
