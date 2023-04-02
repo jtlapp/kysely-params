@@ -2,8 +2,8 @@ import { Kysely } from 'kysely';
 
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
-import '../lib/insert-params';
 import { ignore } from '../utils/test-utils';
+import '../lib/insert-params';
 
 let db: Kysely<Database>;
 
