@@ -10,39 +10,9 @@ import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
 import { NoArraysObject } from './internal-types';
 
 /**
- * Adds a `parameterize` method to `UpdateQueryBuilder`.
- */
-declare module 'kysely/dist/cjs/query-builder/update-query-builder' {
-  interface UpdateQueryBuilder<
-    DB,
-    UT extends keyof DB,
-    TB extends keyof DB,
-    O
-  > {
-    parameterize<P extends NoArraysObject<P>>(
-      factory: ParameterizedSelectFactory<DB, UT, TB, O, P>
-    ): ParameterizedQuery<P, O>;
-  }
-}
-UpdateQueryBuilder.prototype.parameterize = function <
-  DB,
-  UT extends keyof DB,
-  TB extends keyof DB,
-  O,
-  P extends NoArraysObject<P>
->(
-  factory: ParameterizedSelectFactory<DB, UT, TB, O, P>
-): ParameterizedQuery<P, O> {
-  const parameterizer = new QueryParameterizer<P>();
-  return new ParameterizedQuery(
-    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
-  );
-};
-
-/**
  * Factory function for creating a parameterized `UpdateQueryBuilder`.
  */
-interface ParameterizedSelectFactory<
+export interface ParameterizedUpdateFactory<
   DB,
   UT extends keyof DB,
   TB extends keyof DB,
@@ -54,3 +24,21 @@ interface ParameterizedSelectFactory<
     param: QueryParameterizer<P>['param'];
   }): Compilable<O>;
 }
+
+/**
+ * Adds a `parameterize` method to `UpdateQueryBuilder`.
+ */
+UpdateQueryBuilder.prototype.parameterize = function <
+  DB,
+  UT extends keyof DB,
+  TB extends keyof DB,
+  O,
+  P extends NoArraysObject<P>
+>(
+  factory: ParameterizedUpdateFactory<DB, UT, TB, O, P>
+): ParameterizedQuery<P, O> {
+  const parameterizer = new QueryParameterizer<P>();
+  return new ParameterizedQuery(
+    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
+  );
+};

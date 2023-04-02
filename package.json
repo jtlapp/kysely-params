@@ -1,6 +1,6 @@
 {
   "name": "kysely-params",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "license": "MIT",
   "description": "Kysely extension for parameterizing compiled queries",

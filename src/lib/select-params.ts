@@ -11,15 +11,23 @@ import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
 import { NoArraysObject } from './internal-types';
 
 /**
+ * Factory function for creating a parameterized `SelectQueryBuilder`.
+ */
+export interface ParameterizedSelectFactory<
+  DB,
+  TB extends keyof DB,
+  O,
+  P extends NoArraysObject<P>
+> {
+  (args: {
+    qb: SelectQueryBuilder<DB, TB, O>;
+    param: QueryParameterizer<P>['param'];
+  }): Compilable<O>;
+}
+
+/**
  * Adds a `parameterize` method to `SelectQueryBuilder`.
  */
-declare module 'kysely/dist/cjs/query-builder/select-query-builder' {
-  interface SelectQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
-      factory: ParameterizedSelectFactory<DB, TB, O, P>
-    ): ParameterizedQuery<P, O>;
-  }
-}
 SelectQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
@@ -31,18 +39,3 @@ SelectQueryBuilder.prototype.parameterize = function <
     factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
   );
 };
-
-/**
- * Factory function for creating a parameterized `SelectQueryBuilder`.
- */
-interface ParameterizedSelectFactory<
-  DB,
-  TB extends keyof DB,
-  O,
-  P extends NoArraysObject<P>
-> {
-  (args: {
-    qb: SelectQueryBuilder<DB, TB, O>;
-    param: QueryParameterizer<P>['param'];
-  }): Compilable<O>;
-}

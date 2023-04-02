@@ -10,31 +10,9 @@ import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
 import { NoArraysObject } from './internal-types';
 
 /**
- * Adds a `parameterize` method to `DeleteQueryBuilder`.
- */
-declare module 'kysely/dist/cjs/query-builder/delete-query-builder' {
-  interface DeleteQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
-      factory: ParameterizedSelectFactory<DB, TB, O, P>
-    ): ParameterizedQuery<P, O>;
-  }
-}
-DeleteQueryBuilder.prototype.parameterize = function <
-  DB,
-  TB extends keyof DB,
-  O,
-  P extends NoArraysObject<P>
->(factory: ParameterizedSelectFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
-  const parameterizer = new QueryParameterizer<P>();
-  return new ParameterizedQuery(
-    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
-  );
-};
-
-/**
  * Factory function for creating a parameterized `DeleteQueryBuilder`.
  */
-interface ParameterizedSelectFactory<
+export interface ParameterizedDeleteFactory<
   DB,
   TB extends keyof DB,
   O,
@@ -45,3 +23,18 @@ interface ParameterizedSelectFactory<
     param: QueryParameterizer<P>['param'];
   }): Compilable<O>;
 }
+
+/**
+ * Adds a `parameterize` method to `DeleteQueryBuilder`.
+ */
+DeleteQueryBuilder.prototype.parameterize = function <
+  DB,
+  TB extends keyof DB,
+  O,
+  P extends NoArraysObject<P>
+>(factory: ParameterizedDeleteFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
+  const parameterizer = new QueryParameterizer<P>();
+  return new ParameterizedQuery(
+    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
+  );
+};

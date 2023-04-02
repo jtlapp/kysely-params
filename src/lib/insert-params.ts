@@ -8,15 +8,23 @@ import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
 import { NoArraysObject } from './internal-types';
 
 /**
+ * Factory function for creating a parameterized `InsertQueryBuilder`.
+ */
+export interface ParameterizedInsertFactory<
+  DB,
+  TB extends keyof DB,
+  O,
+  P extends NoArraysObject<P>
+> {
+  (args: {
+    qb: InsertQueryBuilder<DB, TB, O>;
+    param: QueryParameterizer<P>['param'];
+  }): Compilable<O>;
+}
+
+/**
  * Adds a `parameterize` method to `InsertQueryBuilder`.
  */
-declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
-  interface InsertQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
-      factory: ParameterizedInsertFactory<DB, TB, O, P>
-    ): ParameterizedQuery<P, O>;
-  }
-}
 InsertQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
@@ -28,18 +36,3 @@ InsertQueryBuilder.prototype.parameterize = function <
     factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
   );
 };
-
-/**
- * Factory function for creating a parameterized `InsertQueryBuilder`.
- */
-interface ParameterizedInsertFactory<
-  DB,
-  TB extends keyof DB,
-  O,
-  P extends NoArraysObject<P>
-> {
-  (args: {
-    qb: InsertQueryBuilder<DB, TB, O>;
-    param: QueryParameterizer<P>['param'];
-  }): Compilable<O>;
-}
