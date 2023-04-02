@@ -1,7 +1,8 @@
 /**
  * Module enabling selections to be parameterized. Parameters cannot take
  * array values because Kysely must compile queries for the size of the array
- * The elements of a fixed-length array can be parameterized, however.
+ * The elements of a fixed-length array can be parameterized, however. Column
+ * selections must be made prior to calling `parameterize()`.
  */
 
 import { Compilable, SelectQueryBuilder } from 'kysely';
