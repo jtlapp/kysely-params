@@ -1,6 +1,8 @@
 {
   "name": "ts-play",
   "version": "0.1.0",
+  "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
+  "license": "MIT",
   "description": "Kysely extension for parameterizing compiled queries",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
