@@ -23,8 +23,9 @@ InsertQueryBuilder.prototype.parameterize = function <
   O,
   P extends NonEmptyNoArraysObject<P>
 >(factory: ParameterizedInsertFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
+  const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
-    factory({ qb: this, p: new QueryParameterizer<P>() })
+    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
   );
 };
 
@@ -39,6 +40,6 @@ interface ParameterizedInsertFactory<
 > {
   (args: {
     qb: InsertQueryBuilder<DB, TB, O>;
-    p: QueryParameterizer<P>;
+    param: QueryParameterizer<P>['param'];
   }): Compilable<O>;
 }

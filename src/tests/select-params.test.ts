@@ -44,10 +44,10 @@ it('parameterizes "where" selections, with multiple executions', async () => {
   const parameterization = db
     .selectFrom('users')
     .selectAll()
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
-        .where('nickname', '=', p.param('nicknameParam'))
-        .where('birthYear', '=', p.param('birthYearParam'))
+        .where('nickname', '=', param('nicknameParam'))
+        .where('birthYear', '=', param('birthYearParam'))
     );
   const result1 = await parameterization.executeTakeFirst(db, {
     nicknameParam: user2.nickname,
@@ -73,8 +73,8 @@ it('parameterizes "where" selections for specific columns', async () => {
   const parameterization = db
     .selectFrom('users')
     .select('name')
-    .parameterize<Params>(({ qb, p }) =>
-      qb.where('handle', '=', p.param('handleParam'))
+    .parameterize<Params>(({ qb, param }) =>
+      qb.where('handle', '=', param('handleParam'))
     );
   const result1 = await parameterization.executeTakeFirst(db, {
     handleParam: user3.handle,
@@ -93,12 +93,12 @@ it('parameterizes "where" selections using "in" operator', async () => {
   const parameterization = db
     .selectFrom('users')
     .selectAll()
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
-        .where('nickname', '=', p.param('nicknameParam'))
+        .where('nickname', '=', param('nicknameParam'))
         .where('birthYear', 'in', [
-          p.param('birthYearParam1'),
-          p.param('birthYearParam2'),
+          param('birthYearParam1'),
+          param('birthYearParam2'),
         ])
     );
   const results = await parameterization.execute(db, {
@@ -119,8 +119,8 @@ ignore('array parameters are not allowed', () => {
   db.selectFrom('users')
     .selectAll()
     // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, p }) =>
-      qb.where('birthYear', 'in', p.param('birthYearsParam'))
+    .parameterize<InvalidParams>(({ qb, param }) =>
+      qb.where('birthYear', 'in', param('birthYearsParam'))
     );
 });
 
@@ -128,9 +128,9 @@ ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     handleParam: number;
   }
-  db.selectFrom('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.selectFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
-    qb.where('handle', '=', p.param('handleParam'))
+    qb.where('handle', '=', param('handleParam'))
   );
 });
 
@@ -142,11 +142,11 @@ ignore('restricts provided parameters', async () => {
 
   const parameterization = db
     .selectFrom('users')
-    .parameterize<ValidParams>(({ qb, p }) =>
+    .parameterize<ValidParams>(({ qb, param }) =>
       qb
-        .where('handle', '=', p.param('handleParam'))
+        .where('handle', '=', param('handleParam'))
         .where('name', '=', 'John Smith')
-        .where('birthYear', '=', p.param('birthYearParam'))
+        .where('birthYear', '=', param('birthYearParam'))
     );
 
   await parameterization.execute(db, {

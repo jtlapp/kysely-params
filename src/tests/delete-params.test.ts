@@ -43,10 +43,10 @@ it('parameterizes deletions, with multiple executions', async () => {
 
   const parameterization = db
     .deleteFrom('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
-        .where('nickname', '=', p.param('nicknameParam'))
-        .where('birthYear', '=', p.param('birthYearParam'))
+        .where('nickname', '=', param('nicknameParam'))
+        .where('birthYear', '=', param('birthYearParam'))
     );
   const result1 = await parameterization.execute(db, {
     nicknameParam: user2.nickname,
@@ -78,12 +78,12 @@ it('parameterizes deletions using "in" operator', async () => {
 
   const parameterization = db
     .deleteFrom('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
-        .where('nickname', '=', p.param('nicknameParam'))
+        .where('nickname', '=', param('nicknameParam'))
         .where('birthYear', 'in', [
-          p.param('birthYearParam1'),
-          p.param('birthYearParam2'),
+          param('birthYearParam1'),
+          param('birthYearParam2'),
         ])
     );
   const results = await parameterization.execute(db, {
@@ -103,8 +103,8 @@ ignore('array parameters are not allowed', () => {
   }
   db.deleteFrom('users')
     // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, p }) =>
-      qb.where('birthYear', 'in', p.param('birthYearsParam'))
+    .parameterize<InvalidParams>(({ qb, param }) =>
+      qb.where('birthYear', 'in', param('birthYearsParam'))
     );
 });
 
@@ -112,9 +112,9 @@ ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     handleParam: number;
   }
-  db.deleteFrom('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.deleteFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
-    qb.where('handle', '=', p.param('handleParam'))
+    qb.where('handle', '=', param('handleParam'))
   );
 });
 
@@ -126,11 +126,11 @@ ignore('restricts provided parameters', async () => {
 
   const parameterization = db
     .deleteFrom('users')
-    .parameterize<ValidParams>(({ qb, p }) =>
+    .parameterize<ValidParams>(({ qb, param }) =>
       qb
-        .where('handle', '=', p.param('handleParam'))
+        .where('handle', '=', param('handleParam'))
         .where('name', '=', 'John Smith')
-        .where('birthYear', '=', p.param('birthYearParam'))
+        .where('birthYear', '=', param('birthYearParam'))
     );
 
   await parameterization.execute(db, {

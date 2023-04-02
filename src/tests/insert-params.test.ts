@@ -27,12 +27,12 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
 
   const parameterization = db
     .insertInto('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
         .values({
-          handle: p.param('handleParam'),
+          handle: param('handleParam'),
           name: user.name,
-          birthYear: p.param('birthYearParam'),
+          birthYear: param('birthYearParam'),
         })
         .returning('id')
     );
@@ -65,13 +65,13 @@ it('parameterizes inserted strings and numbers with null values', async () => {
 
   const parameterization = db
     .insertInto('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
         .values({
           handle: user.handle,
           name: user.name,
-          nickname: p.param('nicknameParam'),
-          birthYear: p.param('birthYearParam'),
+          nickname: param('nicknameParam'),
+          birthYear: param('birthYearParam'),
         })
         .returning('id')
     );
@@ -103,9 +103,9 @@ it('parameterizes a generated column, with multiple executions', async () => {
 
   const parameterization = db
     .insertInto('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb.values({
-        id: p.param('idParam'),
+        id: param('idParam'),
         name: user.name,
         handle: user.handle,
       })
@@ -159,18 +159,18 @@ it('parameterizes single query performing multiple insertions', async () => {
 
   const parameterization = db
     .insertInto('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
         .values([
           {
             handle: user1.handle,
-            name: p.param('nameParam1and2'),
-            nickname: p.param('nicknameParam1'),
-            birthYear: p.param('birthYearParam1'),
+            name: param('nameParam1and2'),
+            nickname: param('nicknameParam1'),
+            birthYear: param('birthYearParam1'),
           },
           {
             handle: user2.handle,
-            name: p.param('nameParam1and2'),
+            name: param('nameParam1and2'),
             nickname: user2.nickname,
             birthYear: user2.birthYear,
           },
@@ -203,19 +203,19 @@ ignore('disallows incompatible parameter types', () => {
     nameParam: string | null;
   }
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.values({
-      handle: p.param('handleParam'),
+      handle: param('handleParam'),
       name: 'John Smith',
     })
   );
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
     qb.values({
       handle: 'jsmith',
       //@ts-expect-error - invalid parameter type
-      name: p.param('nameParam'),
+      name: param('nameParam'),
     })
   );
 });
@@ -225,10 +225,10 @@ ignore('restricts a generated column parameter', async () => {
     idParam?: string;
   }
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.values({
-      id: p.param('idParam'),
+      id: param('idParam'),
       name: 'John Smith',
       handle: 'jsmith',
     })
@@ -243,11 +243,11 @@ ignore('restricts provided parameters', async () => {
 
   const parameterization = db
     .insertInto('users')
-    .parameterize<ValidParams>(({ qb, p }) =>
+    .parameterize<ValidParams>(({ qb, param }) =>
       qb.values({
-        handle: p.param('handleParam'),
+        handle: param('handleParam'),
         name: 'John Smith',
-        birthYear: p.param('birthYearParam'),
+        birthYear: param('birthYearParam'),
       })
     );
 

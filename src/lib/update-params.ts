@@ -33,8 +33,9 @@ UpdateQueryBuilder.prototype.parameterize = function <
 >(
   factory: ParameterizedSelectFactory<DB, UT, TB, O, P>
 ): ParameterizedQuery<P, O> {
+  const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
-    factory({ qb: this, p: new QueryParameterizer<P>() })
+    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
   );
 };
 
@@ -50,6 +51,6 @@ interface ParameterizedSelectFactory<
 > {
   (args: {
     qb: UpdateQueryBuilder<DB, UT, TB, O>;
-    p: QueryParameterizer<P>;
+    param: QueryParameterizer<P>['param'];
   }): Compilable<O>;
 }

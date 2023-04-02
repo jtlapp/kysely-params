@@ -26,8 +26,9 @@ SelectQueryBuilder.prototype.parameterize = function <
   O,
   P extends NonEmptyNoArraysObject<P>
 >(factory: ParameterizedSelectFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
+  const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
-    factory({ qb: this, p: new QueryParameterizer<P>() })
+    factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
   );
 };
 
@@ -42,6 +43,6 @@ interface ParameterizedSelectFactory<
 > {
   (args: {
     qb: SelectQueryBuilder<DB, TB, O>;
-    p: QueryParameterizer<P>;
+    param: QueryParameterizer<P>['param'];
   }): Compilable<O>;
 }

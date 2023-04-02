@@ -43,13 +43,13 @@ it("parameterizes update values and 'where' selections, with multiple executions
 
   const parameterization = db
     .updateTable('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
         .set({
-          birthYear: p.param('toBirthYear'),
+          birthYear: param('toBirthYear'),
           handle: 'newHandle',
         })
-        .where('nickname', '=', p.param('whereNickname'))
+        .where('nickname', '=', param('whereNickname'))
     );
 
   const result1 = await parameterization.execute(db, {
@@ -83,12 +83,12 @@ it('parameterizes update values accepting nulls', async () => {
 
   const parameterization = db
     .updateTable('users')
-    .parameterize<Params>(({ qb, p }) =>
+    .parameterize<Params>(({ qb, param }) =>
       qb
         .set({
-          birthYear: p.param('toBirthYear'),
+          birthYear: param('toBirthYear'),
         })
-        .where('nickname', '=', p.param('whereNickname'))
+        .where('nickname', '=', param('whereNickname'))
     );
 
   const result1 = await parameterization.execute(db, {
@@ -117,19 +117,19 @@ ignore('disallows incompatible set parameter types', () => {
     nameParam: string | null;
   }
 
-  db.updateTable('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.updateTable('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.set({
-      handle: p.param('handleParam'),
+      handle: param('handleParam'),
       name: 'John Smith',
     })
   );
 
-  db.updateTable('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.updateTable('users').parameterize<InvalidParams>(({ qb, param }) =>
     qb.set({
       handle: 'jsmith',
       //@ts-expect-error - invalid parameter type
-      name: p.param('nameParam'),
+      name: param('nameParam'),
     })
   );
 });
@@ -139,10 +139,10 @@ ignore('restricts a set generated column parameter', async () => {
     idParam?: string;
   }
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.values({
-      id: p.param('idParam'),
+      id: param('idParam'),
       name: 'John Smith',
       handle: 'jsmith',
     })
@@ -155,10 +155,10 @@ ignore('array parameters are not allowed', () => {
   }
   db.updateTable('users')
     // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, p }) =>
+    .parameterize<InvalidParams>(({ qb, param }) =>
       qb
         .set({ nickname: 'newNickname' })
-        .where('birthYear', 'in', p.param('birthYearsParam'))
+        .where('birthYear', 'in', param('birthYearsParam'))
     );
 });
 
@@ -166,11 +166,11 @@ ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     handleParam: number;
   }
-  db.updateTable('users').parameterize<InvalidParams>(({ qb, p }) =>
+  db.updateTable('users').parameterize<InvalidParams>(({ qb, param }) =>
     qb
       .set({ nickname: 'newNickname' })
       //@ts-expect-error - invalid parameter type
-      .where('handle', '=', p.param('handleParam'))
+      .where('handle', '=', param('handleParam'))
   );
 });
 
@@ -182,12 +182,12 @@ ignore('restricts provided parameters', async () => {
 
   const parameterization = db
     .updateTable('users')
-    .parameterize<ValidParams>(({ qb, p }) =>
+    .parameterize<ValidParams>(({ qb, param }) =>
       qb
         .set({ nickname: 'newNickname' })
-        .where('handle', '=', p.param('handleParam'))
+        .where('handle', '=', param('handleParam'))
         .where('name', '=', 'John Smith')
-        .where('birthYear', '=', p.param('birthYearParam'))
+        .where('birthYear', '=', param('birthYearParam'))
     );
 
   await parameterization.execute(db, {
