@@ -32,7 +32,7 @@ export class QueryParameterizer<P> {
  * Class representing a parameterized query.
  */
 export class ParameterizedQuery<P extends Record<string, any>, O> {
-  readonly #qb: Compilable<O>;
+  #qb: Compilable<O> | null;
   #compiledQuery?: CompiledQuery<O>;
 
   constructor(qb: Compilable<O>) {
@@ -40,14 +40,18 @@ export class ParameterizedQuery<P extends Record<string, any>, O> {
   }
 
   /**
-   * Executes the query, returning all results.
+   * Executes the query, returning all results. Compiles the query on the
+   * first call, caching the compiled query and discarding the query builder
+   * on which it was based in order to reduce memory consumed.
    * @param db The Kysely database instance.
    * @param params Query parameter values.
    * @returns Query result.
    */
   async execute<DB>(db: Kysely<DB>, params: P): Promise<QueryResult<O>> {
     if (this.#compiledQuery === undefined) {
-      this.#compiledQuery = this.#qb.compile();
+      this.#compiledQuery = this.#qb!.compile();
+      // Allow the query builder to be garbage collected.
+      this.#qb = null;
     }
     return db.executeQuery({
       query: this.#compiledQuery.query,
@@ -59,7 +63,9 @@ export class ParameterizedQuery<P extends Record<string, any>, O> {
   }
 
   /**
-   * Executes the query, returning the first result.
+   * Executes the query, returning the first result. Compiles the query on the
+   * first call, caching the compiled query and discarding the query builder
+   * on which it was based in order to reduce memory consumed.
    * @param db The Kysely database instance.
    * @param params Query parameter values.
    * @returns First query result, or undefined if there are no results.
