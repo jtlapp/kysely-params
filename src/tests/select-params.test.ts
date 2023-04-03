@@ -112,6 +112,39 @@ it('parameterizes "where" selections using "in" operator', async () => {
   ]);
 });
 
+it('parameterizes values within a where expression', async () => {
+  interface Params {
+    targetNickname: string;
+    targetBirthYear1: number;
+    targetBirthYear2: number;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .selectFrom('users')
+    .selectAll()
+    .parameterize<Params>(({ qb, param }) =>
+      qb.where(({ and, cmpr }) =>
+        and([
+          cmpr('nickname', '=', param('targetNickname')),
+          cmpr('birthYear', 'in', [
+            param('targetBirthYear1'),
+            param('targetBirthYear2'),
+          ]),
+        ])
+      )
+    );
+  const results = await parameterization.execute(db, {
+    targetNickname: user2.nickname,
+    targetBirthYear1: 1980,
+    targetBirthYear2: 1990,
+  });
+  expect(results.rows).toEqual([
+    { ...user1, id: 1 },
+    { ...user2, id: 2 },
+  ]);
+});
+
 it('parameterizes without defined parameters', async () => {
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
@@ -146,6 +179,32 @@ ignore('disallows incompatible parameter types', () => {
   db.selectFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
     //@ts-expect-error - invalid parameter type
     qb.where('handle', '=', param('targetHandle'))
+  );
+  db.selectFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
+    //@ts-expect-error - invalid parameter type
+    qb.where(({ or, cmpr }) => or([cmpr('handle', '=', param('targetHandle'))]))
+  );
+});
+
+ignore('disallows parameters in column positions', () => {
+  interface ValidParams {
+    targetHandle: string;
+  }
+
+  db.selectFrom('users').parameterize<ValidParams>(({ qb, param }) =>
+    // @ts-expect-error - invalid parameter position
+    qb.where(param('targetHandle'), '=', 'jsmith')
+  );
+
+  db.selectFrom('users').parameterize<ValidParams>(({ qb, param }) =>
+    qb.where(({ or, cmpr }) =>
+      or([
+        // @ts-expect-error - invalid parameter position
+        cmpr(param('targetHandle'), '=', 'jsmith'),
+        // @ts-expect-error - invalid parameter position
+        cmpr('birthYear', param('targetHandle'), 1980),
+      ])
+    )
   );
 });
 
