@@ -146,7 +146,6 @@ it('parameterizes values within a where expression', async () => {
 });
 
 it('parameterizes values within a SQL expression', async () => {
-  // sql`name != ${USERS[0].name}`
   interface Params {
     targetName: string;
   }
