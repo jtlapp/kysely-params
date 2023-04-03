@@ -1,4 +1,4 @@
-import { Kysely } from 'kysely';
+import { Kysely, sql } from 'kysely';
 
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
@@ -143,6 +143,35 @@ it('parameterizes values within a where expression', async () => {
     { ...user1, id: 1 },
     { ...user2, id: 2 },
   ]);
+});
+
+it('parameterizes values within a SQL expression', async () => {
+  // sql`name != ${USERS[0].name}`
+  interface Params {
+    targetName: string;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .selectFrom('users')
+    .selectAll()
+    .parameterize<Params>(({ qb, param }) =>
+      qb.where(sql`name = ${param('targetName')}`)
+    );
+
+  // First execution
+
+  const results1 = await parameterization.execute(db, {
+    targetName: user1.name,
+  });
+  expect(results1.rows).toEqual([{ ...user1, id: 1 }]);
+
+  // Second execution
+
+  const results2 = await parameterization.execute(db, {
+    targetName: user2.name,
+  });
+  expect(results2.rows).toEqual([{ ...user2, id: 2 }]);
 });
 
 it('parameterizes without defined parameters', async () => {
