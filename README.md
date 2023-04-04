@@ -147,7 +147,26 @@ The type parameter passed to `parameterize` is an object whose properties are th
 
 ## Parameterizations
 
-The `parameterize` method returns an instance of `ParameterizedQuery`. Please see [parameterization.ts](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterization.ts) for its API, which allows for executing and instantiated parameterizations
+The `parameterize` method returns an instance of `ParameterizedQuery`. Please see [parameterization.ts](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterization.ts) for its API, which allows for executing and instantiated parameterizations.
+
+`ParameterizedQuery` is available for import, should you need variables of this type. The following query accepts a `targetId` parameter and returns the `name` column:
+
+```ts
+import { ParameterizedQuery } from 'kysely-params';
+
+interface Params {
+  targetId: number;
+}
+
+let parameterization: ParameterizedQuery<Params, { name: string }>;
+
+parameterization = db
+  .selectFrom('users')
+  .select('name')
+  .parameterize<Params>(({ qb, param }) =>
+    qb.where('id', '=', param('targetId'))
+  );
+```
 
 When you execute or instantiate a parameterization, you must provide values for **_all_** of the parameters given in this type, as the execution and instantation methods do not know which parameters were actually used in the query. Be mindful of this when you specify the parameters type parameter for `parameterize`.
 
