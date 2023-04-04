@@ -3,8 +3,8 @@ import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 import { ParamArg } from './parameterizer';
 
 /**
- * Class representing a parameterized query that can be repeatedly executed
- * or instantiated with different values for its parameters.
+ * Class representing a parameterized compiled query that can be repeatedly
+ * executed or instantiated with different values for its parameters.
  * @paramtype P Record characterizing the parameter names and types.
  */
 export class ParameterizedQuery<P extends Record<string, any>, O> {
