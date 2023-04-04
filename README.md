@@ -18,7 +18,9 @@ pnpm add kysely kysely-params
 
 Then import `kysely-params` into each file that will parameterize queries:
 
-`import "kysely-params";`
+```ts
+import 'kysely-params';
+```
 
 ## Usage
 
