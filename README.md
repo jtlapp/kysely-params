@@ -69,7 +69,7 @@ const compiledQuery = parameterization.instantiate({
 const result2 = await db.executeQuery(compiledQuery);
 ```
 
-The query compiles on the first call to `execute` or `executeTakeFirst`, and the compilation is used on that and subsequent calls. The first argument is the instance of `Kysely`, and the second is an object that provides the values of the parameters.
+The query compiles on the first call to `execute`, `executeTakeFirst`, or `instantiate`, and the compilation is used on that and subsequent calls. The first argument is the instance of `Kysely`, and the second is an object that provides the values of the parameters.
 
 ## Parameters
 
