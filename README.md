@@ -45,7 +45,7 @@ const parameterization = db
   );
 ```
 
-This produces a parameterization of the query but does not yet compile or execute the query. The example `UserParams` interface defines the available parameters and their types. `db` is an instance of [`Kysely`](https://kysely-org.github.io/kysely/classes/Kysely.html). `qb` is a regular Kysely query builder &mdash; in this case, a `SelectQueryBuilder`. Call `param` with a parameter name where you would like to be able to vary the value.
+This produces a parameterization of the query but does not yet compile or execute the query. The example `UserParams` interface defines the available parameters and their types. `db` is an instance of [`Kysely`](https://kysely-org.github.io/kysely/classes/Kysely.html). `qb` is a regular Kysely query builder &mdash; in this case, a [`SelectQueryBuilder`](https://kysely-org.github.io/kysely/classes/SelectQueryBuilder.html). Call `param` with a parameter name where you would like to be able to vary the value.
 
 When parameterizing a select query, you must select the returned columns before calling `parameterize`. You will not get a compiler error for doing otherwise, but you will get a runtime exception describing the problem.
 
