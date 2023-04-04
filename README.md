@@ -143,7 +143,7 @@ The type parameter passed to `parameterize` is an object whose properties are th
 
 ## Parameterizations
 
-The `parameterize` method returns an instance of `ParameterizedQuery`. Please see [parameterizations.ts](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterization.ts) for its API, which allows for executing and instantiated parameterizations
+The `parameterize` method returns an instance of `ParameterizedQuery`. Please see [parameterization.ts](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterization.ts) for its API, which allows for executing and instantiated parameterizations
 
 When you execute or instantiate a parameterization, you must provide values for **_all_** of the parameters given in this type, as the execution and instantation methods do not know which parameters were actually used in the query. Be mindful of this when you specify the parameters type parameter for `parameterize`.
 
