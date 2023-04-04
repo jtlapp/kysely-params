@@ -10,11 +10,11 @@ This package allows you to parameterize compiled [Kysely](https://github.com/kys
 
 Install both Kysely and the package with your preferred dependency manager:
 
-`npm install kysely kysely-params`
-
-`yarn add kysely kysely-params`
-
-`pnpm add kysely kysely-params`
+```
+npm install kysely kysely-params
+yarn add kysely kysely-params
+pnpm add kysely kysely-params
+```
 
 Then import `kysely-params` into each file that will parameterize queries:
 
