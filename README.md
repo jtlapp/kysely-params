@@ -47,7 +47,7 @@ const parameterization = db
 
 This produces a parameterization of the query but does not yet compile or execute the query. The example `UserParams` interface defines the available parameters and their types. `db` is an instance of [`Kysely`](https://kysely-org.github.io/kysely/classes/Kysely.html). `qb` is a regular Kysely query builder &mdash; in this case, a [`SelectQueryBuilder`](https://kysely-org.github.io/kysely/classes/SelectQueryBuilder.html). Call `param` with a parameter name where you would like to be able to vary the value.
 
-When parameterizing a query, you must select any returned columns (via `select()`, `selectAll()`, `resturning()`, or `returningAll()`) before calling `parameterize`, if you wish to be able to access the returned columns by name. Otherwise, TypeScript will not be aware of the returned columns or their types.
+When parameterizing a query, you must select any returned columns (via `select()`, `selectAll()`, `returning()`, or `returningAll()`) before calling `parameterize`, if you wish to be able to access the returned columns by name. Otherwise, TypeScript will not be aware of the returned columns or their types.
 
 The second step is to execute the parameterized query. You can execute a parameterized query as many times as you wish. The `execute` and `executeTakeFirst` methods are available, as is an `instantiate` method for returning a [`CompiledQuery`](https://github.com/kysely-org/kysely/blob/master/site/docs/recipes/splitting-build-compile-and-execute-code.md#execute-compiled-queries) with all parameters replaced with values:
 
