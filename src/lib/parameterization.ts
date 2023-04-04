@@ -1,7 +1,3 @@
-/**
- * Module providing types common across parameterized queries.
- */
-
 import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 
 import { ParamArg } from './parameterizer';
