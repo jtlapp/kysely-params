@@ -1,4 +1,4 @@
-export * from './lib/parameterizer';
+export * from './lib/parameterization';
 export * from './lib/delete-params';
 export * from './lib/insert-params';
 export * from './lib/select-params';
@@ -6,7 +6,7 @@ export * from './lib/update-params';
 
 // Extensions of Kysely's query builders
 
-import { ParameterizedQuery } from './lib/parameterizer';
+import { ParameterizedQuery } from './lib/parameterization';
 import { ParameterizedDeleteFactory } from './lib/delete-params';
 import { ParameterizedInsertFactory } from './lib/insert-params';
 import { ParameterizedSelectFactory } from './lib/select-params';

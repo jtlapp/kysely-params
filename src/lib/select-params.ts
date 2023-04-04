@@ -7,7 +7,8 @@
 
 import { Compilable, SelectQueryBuilder } from 'kysely';
 
-import { QueryParameterizer, ParameterizedQuery } from './parameterizer';
+import { QueryParameterizer } from './parameterizer';
+import { ParameterizedQuery } from './parameterization';
 import { NoArraysObject } from './internal-types';
 
 /**
