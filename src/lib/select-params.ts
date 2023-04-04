@@ -35,9 +35,6 @@ SelectQueryBuilder.prototype.parameterize = function <
   O,
   P extends NoArraysObject<P>
 >(factory: ParameterizedSelectFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
-  if (!this.toOperationNode().selections) {
-    throw Error("Can't parameterize query before selecting columns");
-  }
   const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
     factory({ qb: this, param: parameterizer.param.bind(parameterizer) })
