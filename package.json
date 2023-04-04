@@ -1,9 +1,17 @@
 {
   "name": "kysely-params",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "license": "MIT",
   "description": "Kysely extension for parameterizing compiled queries",
+  "keywords": [
+    "kysely",
+    "extension",
+    "compiled",
+    "cached",
+    "parameterized",
+    "parameters"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
