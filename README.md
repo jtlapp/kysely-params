@@ -12,7 +12,9 @@ Install both Kysely and the package with your preferred dependency manager:
 
 ```
 npm install kysely kysely-params
+
 yarn add kysely kysely-params
+
 pnpm add kysely kysely-params
 ```
 
