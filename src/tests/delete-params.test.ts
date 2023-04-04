@@ -32,6 +32,45 @@ const user3 = {
   birthYear: 1990,
 };
 
+it('instantiates deletions, with multiple executions', async () => {
+  interface Params {
+    targetNickname: string;
+    targetBirthYear: number;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .deleteFrom('users')
+    .parameterize<Params>(({ qb, param }) =>
+      qb
+        .where('nickname', '=', param('targetNickname'))
+        .where('birthYear', '=', param('targetBirthYear'))
+    );
+
+  // First execution
+
+  const compiledQuery1 = parameterization.instantiate({
+    targetNickname: user2.nickname,
+    targetBirthYear: user2.birthYear,
+  });
+  const result1 = await db.executeQuery(compiledQuery1);
+  expect(Number(result1?.numAffectedRows)).toEqual(1);
+
+  // Second execution
+
+  const compiledQuery2 = parameterization.instantiate({
+    targetNickname: user3.nickname,
+    targetBirthYear: user3.birthYear,
+  });
+  const result2 = await db.executeQuery(compiledQuery2);
+  expect(Number(result2?.numAffectedRows)).toEqual(1);
+
+  // Verify that the correct rows were deleted
+
+  const results = await db.selectFrom('users').selectAll().execute();
+  expect(results).toEqual([{ ...user1, id: 1 }]);
+});
+
 it('parameterizes deletions, with multiple executions', async () => {
   interface Params {
     targetNickname: string;

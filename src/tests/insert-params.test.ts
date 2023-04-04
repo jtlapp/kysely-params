@@ -13,6 +13,44 @@ beforeAll(async () => {
 beforeEach(() => resetDB(db));
 afterAll(() => destroyDB(db));
 
+it('instantiates inserted strings and numbers', async () => {
+  interface Params {
+    sourceHandle: string;
+    sourceBirthYear: number | null;
+  }
+  const user = {
+    name: 'John Smith',
+    // leave out nickname
+    handle: 'jsmith',
+    birthYear: 1990,
+  };
+
+  const parameterization = db
+    .insertInto('users')
+    .parameterize<Params>(({ qb, param }) =>
+      qb
+        .values({
+          handle: param('sourceHandle'),
+          name: user.name,
+          birthYear: param('sourceBirthYear'),
+        })
+        .returning('id')
+    );
+  const compiledQuery = parameterization.instantiate({
+    sourceHandle: user.handle,
+    sourceBirthYear: user.birthYear,
+  });
+  const result = await db.executeQuery(compiledQuery);
+  expect(result?.rows).toEqual([{ id: 1 }]);
+
+  const readUser = await db
+    .selectFrom('users')
+    .selectAll()
+    .where('handle', '=', user.handle)
+    .executeTakeFirst();
+  expect(readUser).toEqual({ ...user, id: 1, nickname: null });
+});
+
 it('parameterizes inserted strings and numbers with non-null values', async () => {
   interface Params {
     sourceHandle: string;

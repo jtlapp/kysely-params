@@ -32,6 +32,50 @@ const user3 = {
   birthYear: 1990,
 };
 
+it("instantiates update values and 'where' selections, with multiple executions", async () => {
+  interface Params {
+    toBirthYear: number;
+    whereNickname: string;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .updateTable('users')
+    .parameterize<Params>(({ qb, param }) =>
+      qb
+        .set({
+          birthYear: param('toBirthYear'),
+          handle: 'newHandle',
+        })
+        .where('nickname', '=', param('whereNickname'))
+    );
+
+  // First execution
+
+  const compiledQuery1 = parameterization.instantiate({
+    toBirthYear: 2000,
+    whereNickname: user2.nickname,
+  });
+  const result1 = await db.executeQuery(compiledQuery1);
+  expect(Number(result1?.numAffectedRows)).toEqual(2);
+
+  // Second execution
+
+  const compiledQuery2 = parameterization.instantiate({
+    toBirthYear: 2010,
+    whereNickname: user3.nickname,
+  });
+  const result2 = await db.executeQuery(compiledQuery2);
+  expect(Number(result2?.numAffectedRows)).toEqual(1);
+
+  const users = await db.selectFrom('users').selectAll().execute();
+  expect(users).toEqual([
+    { ...user1, id: 1, handle: 'newHandle', birthYear: 2000 },
+    { ...user2, id: 2, handle: 'newHandle', birthYear: 2000 },
+    { ...user3, id: 3, handle: 'newHandle', birthYear: 2010 },
+  ]);
+});
+
 it("parameterizes update values and 'where' selections, with multiple executions", async () => {
   interface Params {
     toBirthYear: number;

@@ -38,6 +38,41 @@ it('requires columns to be selected before parameterization', () => {
   );
 });
 
+it('instantiates "where" selections, with multiple executions', async () => {
+  interface Params {
+    targetNickname: string;
+    targetBirthYear: number;
+  }
+  await db.insertInto('users').values([user1, user2, user3]).execute();
+
+  const parameterization = db
+    .selectFrom('users')
+    .selectAll()
+    .parameterize<Params>(({ qb, param }) =>
+      qb
+        .where('nickname', '=', param('targetNickname'))
+        .where('birthYear', '=', param('targetBirthYear'))
+    );
+
+  // First execution
+
+  const compiledQuery1 = parameterization.instantiate({
+    targetNickname: user2.nickname,
+    targetBirthYear: user2.birthYear,
+  });
+  const result1 = await db.executeQuery(compiledQuery1);
+  expect(result1?.rows).toEqual([{ ...user2, id: 2 }]);
+
+  // Second execution
+
+  const compiledQuery2 = parameterization.instantiate({
+    targetNickname: user2.nickname,
+    targetBirthYear: 1980,
+  });
+  const result2 = await db.executeQuery(compiledQuery2);
+  expect(result2?.rows).toEqual([{ ...user1, id: 1 }]);
+});
+
 it('parameterizes "where" selections, with multiple executions', async () => {
   interface Params {
     targetNickname: string;
