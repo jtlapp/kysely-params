@@ -11,11 +11,11 @@ import { ParameterizedDeleteFactory } from './lib/delete-params';
 import { ParameterizedInsertFactory } from './lib/insert-params';
 import { ParameterizedSelectFactory } from './lib/select-params';
 import { ParameterizedUpdateFactory } from './lib/update-params';
-import { NoArraysObject } from './lib/internal-types';
+import { ParametersObject } from './lib/parameterization';
 
 declare module 'kysely/dist/cjs/query-builder/delete-query-builder' {
   export interface DeleteQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
+    parameterize<P extends ParametersObject<P>>(
       factory: ParameterizedDeleteFactory<DB, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -23,7 +23,7 @@ declare module 'kysely/dist/cjs/query-builder/delete-query-builder' {
 
 declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
   export interface InsertQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
+    parameterize<P extends ParametersObject<P>>(
       factory: ParameterizedInsertFactory<DB, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -31,7 +31,7 @@ declare module 'kysely/dist/cjs/query-builder/insert-query-builder' {
 
 declare module 'kysely/dist/cjs/query-builder/select-query-builder' {
   export interface SelectQueryBuilder<DB, TB extends keyof DB, O> {
-    parameterize<P extends NoArraysObject<P>>(
+    parameterize<P extends ParametersObject<P>>(
       factory: ParameterizedSelectFactory<DB, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }
@@ -44,7 +44,7 @@ declare module 'kysely/dist/cjs/query-builder/update-query-builder' {
     TB extends keyof DB,
     O
   > {
-    parameterize<P extends NoArraysObject<P>>(
+    parameterize<P extends ParametersObject<P>>(
       factory: ParameterizedUpdateFactory<DB, UT, TB, O, P>
     ): ParameterizedQuery<P, O>;
   }

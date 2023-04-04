@@ -3,11 +3,20 @@ import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 import { ParamArg } from './parameterizer';
 
 /**
+ * Type for an object that defines the query parameters. It disallows the
+ * object from having array properties.
+ * @typeparam T Type that is to define the query parameters.
+ */
+export type ParametersObject<P> = {
+  [K in keyof P]: P[K] extends Array<any> ? never : P[K];
+};
+
+/**
  * Class representing a parameterized compiled query that can be repeatedly
  * executed or instantiated with different values for its parameters.
  * @paramtype P Record characterizing the parameter names and types.
  */
-export class ParameterizedQuery<P extends Record<string, any>, O> {
+export class ParameterizedQuery<P extends ParametersObject<P>, O> {
   #qb: Compilable<O> | null;
   #compiledQuery?: CompiledQuery<O>;
 
@@ -61,7 +70,7 @@ export class ParameterizedQuery<P extends Record<string, any>, O> {
       query: this.#compiledQuery.query,
       sql: this.#compiledQuery.sql,
       parameters: this.#compiledQuery.parameters.map((arg) =>
-        arg instanceof ParamArg ? params[arg.name] : arg
+        arg instanceof ParamArg ? params[arg.name as keyof P] : arg
       ),
     };
   }

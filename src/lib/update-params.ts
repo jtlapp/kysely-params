@@ -8,7 +8,7 @@ import { Compilable, UpdateQueryBuilder } from 'kysely';
 
 import { QueryParameterizer } from './parameterizer';
 import { ParameterizedQuery } from './parameterization';
-import { NoArraysObject } from './internal-types';
+import { ParametersObject } from './parameterization';
 
 /**
  * Factory function for creating a parameterized `UpdateQueryBuilder`.
@@ -18,7 +18,7 @@ export interface ParameterizedUpdateFactory<
   UT extends keyof DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 > {
   (args: {
     qb: UpdateQueryBuilder<DB, UT, TB, O>;
@@ -34,7 +34,7 @@ UpdateQueryBuilder.prototype.parameterize = function <
   UT extends keyof DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 >(
   factory: ParameterizedUpdateFactory<DB, UT, TB, O, P>
 ): ParameterizedQuery<P, O> {

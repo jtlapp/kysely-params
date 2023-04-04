@@ -8,7 +8,7 @@ import { Compilable, DeleteQueryBuilder } from 'kysely';
 
 import { QueryParameterizer } from './parameterizer';
 import { ParameterizedQuery } from './parameterization';
-import { NoArraysObject } from './internal-types';
+import { ParametersObject } from './parameterization';
 
 /**
  * Factory function for creating a parameterized `DeleteQueryBuilder`.
@@ -17,7 +17,7 @@ export interface ParameterizedDeleteFactory<
   DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 > {
   (args: {
     qb: DeleteQueryBuilder<DB, TB, O>;
@@ -32,7 +32,7 @@ DeleteQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 >(factory: ParameterizedDeleteFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
   const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(

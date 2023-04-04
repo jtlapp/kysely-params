@@ -9,7 +9,7 @@ import { Compilable, SelectQueryBuilder } from 'kysely';
 
 import { QueryParameterizer } from './parameterizer';
 import { ParameterizedQuery } from './parameterization';
-import { NoArraysObject } from './internal-types';
+import { ParametersObject } from './parameterization';
 
 /**
  * Factory function for creating a parameterized `SelectQueryBuilder`.
@@ -18,7 +18,7 @@ export interface ParameterizedSelectFactory<
   DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 > {
   (args: {
     qb: SelectQueryBuilder<DB, TB, O>;
@@ -33,7 +33,7 @@ SelectQueryBuilder.prototype.parameterize = function <
   DB,
   TB extends keyof DB,
   O,
-  P extends NoArraysObject<P>
+  P extends ParametersObject<P>
 >(factory: ParameterizedSelectFactory<DB, TB, O, P>): ParameterizedQuery<P, O> {
   const parameterizer = new QueryParameterizer<P>();
   return new ParameterizedQuery(
