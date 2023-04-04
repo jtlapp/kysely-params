@@ -32,6 +32,12 @@ const user3 = {
   birthYear: 1990,
 };
 
+it('requires columns to be selected before parameterization', () => {
+  expect(() => db.selectFrom('users').parameterize(({ qb }) => qb)).toThrow(
+    "Can't parameterize query before selecting columns"
+  );
+});
+
 it('parameterizes "where" selections, with multiple executions', async () => {
   interface Params {
     targetNickname: string;
