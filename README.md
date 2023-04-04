@@ -168,7 +168,7 @@ parameterization = db
   );
 ```
 
-When you execute or instantiate a parameterization, you must provide values for **_all_** of the parameters given in this type, as the execution and instantation methods do not know which parameters were actually used in the query. Be mindful of this when you specify the parameters type parameter for `parameterize`.
+Be mindful of the type parameter you provide to `parameterize` for defining query parameters. When you execute or instantiate a parameterization, you must provide values for **_all_** of the parameters given in this type, as the execution and instantation methods do not know which parameters were actually used in the query.
 
 ## License
 
