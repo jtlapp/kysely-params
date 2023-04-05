@@ -3,6 +3,8 @@ import { Compilable } from 'kysely';
 import { ParameterizedValue } from './parameterized-value';
 import { ParameterizedQuery, ParametersObject } from './parameterization';
 
+type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never;
+
 /**
  * Creates and returns a parameterizer for the given query builder. The
  * provided query builder must designate any selected or returned columns
@@ -15,9 +17,10 @@ import { ParameterizedQuery, ParametersObject } from './parameterization';
  * @returns Parameterizer for the given query builder, which can be used
  *  to create parameterized queries.
  */
-export function parameterizeQuery<O, QB extends Compilable<O>>(
-  qb: QB
-): QueryParameterizer<O, QB> {
+export function parameterizeQuery<
+  QB extends Compilable<O>,
+  O = QueryBuilderOutput<QB>
+>(qb: QB): QueryParameterizer<QB, O> {
   return new QueryParameterizer(qb);
 }
 
@@ -26,7 +29,10 @@ export function parameterizeQuery<O, QB extends Compilable<O>>(
  * @paramtype O Type of the query result.
  * @paramtype QB Type of the source query builder.
  */
-export class QueryParameterizer<O, QB extends Compilable<O>> {
+export class QueryParameterizer<
+  QB extends Compilable<O>,
+  O = QueryBuilderOutput<QB>
+> {
   /**
    * Creates a new parameterizer for the given query builder.
    */
@@ -40,7 +46,7 @@ export class QueryParameterizer<O, QB extends Compilable<O>> {
    * @returns Parameterized query.
    */
   asFollows<P extends ParametersObject<P>>(
-    factory: ParameterizedQueryFactory<P, O, QB>
+    factory: ParameterizedQueryFactory<P, QB, O>
   ): ParameterizedQuery<P, O> {
     const parameterMaker = new QueryParameterMaker<P>();
     return new ParameterizedQuery(
@@ -59,8 +65,8 @@ export class QueryParameterizer<O, QB extends Compilable<O>> {
  */
 export interface ParameterizedQueryFactory<
   P extends ParametersObject<P>,
-  O,
-  QB extends Compilable<O>
+  QB extends Compilable<O>,
+  O = QueryBuilderOutput<QB>
 > {
   (args: { qb: QB; param: QueryParameterMaker<P>['param'] }): Compilable<O>;
 }

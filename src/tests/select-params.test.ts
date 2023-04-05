@@ -86,6 +86,8 @@ it('parameterizes "where" selections, with multiple executions', async () => {
     targetNickname: user2.nickname,
     targetBirthYear: user2.birthYear,
   });
+  // Make sure we can address properties by name.
+  expect(result1?.name).toEqual(user2.name);
   expect(result1).toEqual({ ...user2, id: 2 });
 
   // Second execution
