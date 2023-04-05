@@ -6,6 +6,8 @@ A Kysely extension for parameterizing compiled queries
 
 This package allows you to parameterize compiled [Kysely](https://github.com/kysely-org/kysely) queries. It adds a `parameterize` method to the Kysely insert, select, update, and delete query builders. This method takes a function that allows you to selectively parameterize inserted, updated, and compared values. It returns a parameterization that can be repeatedly called to execute or instantiate the query with different values for the parameters. On its first call, the query is compiled and its compilation cached, and the sourcing query builder is discarded to free memory. Subsequent calls use the cached compilation.
 
+**NOTICE**: I'm considering changing the API so that it does not extend Kysley. At present, it is possible for the Kysely implementation to change in a way that breaks this package without Kysely necessarily indicating a change in major version (which normally indicates a breaking change).
+
 ## Installation
 
 Install both Kysely and the package with your preferred dependency manager:
