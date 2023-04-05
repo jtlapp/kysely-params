@@ -3,7 +3,7 @@ import { Kysely } from 'kysely';
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
 import { ignore } from '../utils/test-utils';
-import '../lib/insert-params';
+import { parameterizeQuery } from '../lib/parameterizer';
 
 let db: Kysely<Database>;
 
@@ -25,17 +25,15 @@ it('instantiates inserted strings and numbers', async () => {
     birthYear: 1990,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .values({
-          handle: param('sourceHandle'),
-          name: user.name,
-          birthYear: param('sourceBirthYear'),
-        })
-        .returning('id')
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.values({
+      handle: param('sourceHandle'),
+      name: user.name,
+      birthYear: param('sourceBirthYear'),
+    })
+  );
   const compiledQuery = parameterization.instantiate({
     sourceHandle: user.handle,
     sourceBirthYear: user.birthYear,
@@ -63,17 +61,15 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
     birthYear: 1990,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .values({
-          handle: param('sourceHandle'),
-          name: user.name,
-          birthYear: param('sourceBirthYear'),
-        })
-        .returning('id')
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.values({
+      handle: param('sourceHandle'),
+      name: user.name,
+      birthYear: param('sourceBirthYear'),
+    })
+  );
   const result = await parameterization.executeTakeFirst(db, {
     sourceHandle: user.handle,
     sourceBirthYear: user.birthYear,
@@ -101,18 +97,16 @@ it('parameterizes inserted strings and numbers with null values', async () => {
     birthYear: null,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .values({
-          handle: user.handle,
-          name: user.name,
-          nickname: param('sourceNickname'),
-          birthYear: param('sourceBirthYear'),
-        })
-        .returning('id')
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.values({
+      handle: user.handle,
+      name: user.name,
+      nickname: param('sourceNickname'),
+      birthYear: param('sourceBirthYear'),
+    })
+  );
   const result = await parameterization.executeTakeFirst(db, {
     sourceNickname: user.nickname,
     sourceBirthYear: user.birthYear,
@@ -139,15 +133,15 @@ it('parameterizes a generated column, with multiple executions', async () => {
     birthYear: null,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb.values({
-        id: param('sourceId'),
-        name: user.name,
-        handle: user.handle,
-      })
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.values({
+      id: param('sourceId'),
+      name: user.name,
+      handle: user.handle,
+    })
+  );
 
   // First execution not assigning generated column.
 
@@ -195,26 +189,24 @@ it('parameterizes single query performing multiple insertions', async () => {
     birthYear: 2000,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .values([
-          {
-            handle: user1.handle,
-            name: param('sourceName1and2'),
-            nickname: param('sourceNickname1'),
-            birthYear: param('sourceBirthYear1'),
-          },
-          {
-            handle: user2.handle,
-            name: param('sourceName1and2'),
-            nickname: user2.nickname,
-            birthYear: user2.birthYear,
-          },
-        ])
-        .returning('id')
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.values([
+      {
+        handle: user1.handle,
+        name: param('sourceName1and2'),
+        nickname: param('sourceNickname1'),
+        birthYear: param('sourceBirthYear1'),
+      },
+      {
+        handle: user2.handle,
+        name: param('sourceName1and2'),
+        nickname: user2.nickname,
+        birthYear: user2.birthYear,
+      },
+    ])
+  );
 
   const result = await parameterization.execute(db, {
     sourceName1and2: user1.name,
@@ -243,9 +235,9 @@ it('parameterizes without defined parameters', async () => {
     birthYear: null,
   };
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize(({ qb }) => qb.values(user).returning('id'));
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows(({ qb }) => qb.values(user));
 
   const result = await parameterization.executeTakeFirst(db, {});
   expect(result).toEqual({ id: 1 });
@@ -264,20 +256,22 @@ ignore('disallows incompatible parameter types', () => {
     sourceName: string | null;
   }
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
-    //@ts-expect-error - invalid parameter type
-    qb.values({
-      handle: param('sourceHandle'),
-      name: 'John Smith',
-    })
+  parameterizeQuery(db.insertInto('users')).asFollows<InvalidParams>(
+    ({ qb, param }) =>
+      //@ts-expect-error - invalid parameter type
+      qb.values({
+        handle: param('sourceHandle'),
+        name: 'John Smith',
+      })
   );
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
-    qb.values({
-      handle: 'jsmith',
-      //@ts-expect-error - invalid parameter type
-      name: param('sourceName'),
-    })
+  parameterizeQuery(db.insertInto('users')).asFollows<InvalidParams>(
+    ({ qb, param }) =>
+      qb.values({
+        handle: 'jsmith',
+        //@ts-expect-error - invalid parameter type
+        name: param('sourceName'),
+      })
   );
 });
 
@@ -286,13 +280,14 @@ ignore('restricts a generated column parameter', async () => {
     sourceId?: string;
   }
 
-  db.insertInto('users').parameterize<InvalidParams>(({ qb, param }) =>
-    //@ts-expect-error - invalid parameter type
-    qb.values({
-      id: param('sourceId'),
-      name: 'John Smith',
-      handle: 'jsmith',
-    })
+  parameterizeQuery(db.insertInto('users')).asFollows<InvalidParams>(
+    ({ qb, param }) =>
+      //@ts-expect-error - invalid parameter type
+      qb.values({
+        id: param('sourceId'),
+        name: 'John Smith',
+        handle: 'jsmith',
+      })
   );
 });
 
@@ -302,15 +297,15 @@ ignore('restricts provided parameters', async () => {
     sourceBirthYear: number | null;
   }
 
-  const parameterization = db
-    .insertInto('users')
-    .parameterize<ValidParams>(({ qb, param }) =>
-      qb.values({
-        handle: param('sourceHandle'),
-        name: 'John Smith',
-        birthYear: param('sourceBirthYear'),
-      })
-    );
+  const parameterization = parameterizeQuery(
+    db.insertInto('users')
+  ).asFollows<ValidParams>(({ qb, param }) =>
+    qb.values({
+      handle: param('sourceHandle'),
+      name: 'John Smith',
+      birthYear: param('sourceBirthYear'),
+    })
+  );
 
   await parameterization.execute(db, {
     //@ts-expect-error - invalid parameter name

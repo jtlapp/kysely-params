@@ -3,7 +3,7 @@ import { Kysely, sql } from 'kysely';
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
 import { ignore } from '../utils/test-utils';
-import '../lib/select-params';
+import { parameterizeQuery } from '../lib/parameterizer';
 
 let db: Kysely<Database>;
 
@@ -39,14 +39,13 @@ it('instantiates "where" selections, with multiple executions', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
 
   // First execution
 
@@ -76,14 +75,13 @@ it('parameterizes "where" selections, with multiple executions', async () => {
 
   // First execution
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
   const result1 = await parameterization.executeTakeFirst(db, {
     targetNickname: user2.nickname,
     targetBirthYear: user2.birthYear,
@@ -105,12 +103,11 @@ it('parameterizes "where" selections for specific columns', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .select('name')
-    .parameterize<Params>(({ qb, param }) =>
-      qb.where('handle', '=', param('targetHandle'))
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').select('name')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.where('handle', '=', param('targetHandle'))
+  );
   const result1 = await parameterization.executeTakeFirst(db, {
     targetHandle: user3.handle,
   });
@@ -125,17 +122,16 @@ it('parameterizes "where" selections using "in" operator', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', 'in', [
-          param('targetBirthYear1'),
-          param('targetBirthYear2'),
-        ])
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', 'in', [
+        param('targetBirthYear1'),
+        param('targetBirthYear2'),
+      ])
+  );
   const results = await parameterization.execute(db, {
     targetNickname: user2.nickname,
     targetBirthYear1: 1980,
@@ -155,20 +151,19 @@ it('parameterizes values within a where expression', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize<Params>(({ qb, param }) =>
-      qb.where(({ and, cmpr }) =>
-        and([
-          cmpr('nickname', '=', param('targetNickname')),
-          cmpr('birthYear', 'in', [
-            param('targetBirthYear1'),
-            param('targetBirthYear2'),
-          ]),
-        ])
-      )
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.where(({ and, cmpr }) =>
+      and([
+        cmpr('nickname', '=', param('targetNickname')),
+        cmpr('birthYear', 'in', [
+          param('targetBirthYear1'),
+          param('targetBirthYear2'),
+        ]),
+      ])
+    )
+  );
   const results = await parameterization.execute(db, {
     targetNickname: user2.nickname,
     targetBirthYear1: 1980,
@@ -186,12 +181,11 @@ it('parameterizes values within a SQL expression', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize<Params>(({ qb, param }) =>
-      qb.where(sql`name = ${param('targetName')}`)
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<Params>(({ qb, param }) =>
+    qb.where(sql`name = ${param('targetName')}`)
+  );
 
   // First execution
 
@@ -211,14 +205,13 @@ it('parameterizes values within a SQL expression', async () => {
 it('parameterizes without defined parameters', async () => {
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .selectFrom('users')
-    .selectAll()
-    .parameterize(({ qb }) =>
-      qb
-        .where('nickname', '=', user2.nickname)
-        .where('birthYear', '=', user1.birthYear)
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows(({ qb }) =>
+    qb
+      .where('nickname', '=', user2.nickname)
+      .where('birthYear', '=', user1.birthYear)
+  );
   const result2 = await parameterization.executeTakeFirst(db, {});
   expect(result2).toEqual({ ...user1, id: 1 });
 });
@@ -227,25 +220,29 @@ ignore('array parameters are not allowed', () => {
   interface InvalidParams {
     targetBirthYears: number[];
   }
-  db.selectFrom('users')
-    .selectAll()
+  parameterizeQuery(
+    db.selectFrom('users').selectAll()
     // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, param }) =>
-      qb.where('birthYear', 'in', param('targetBirthYears'))
-    );
+  ).asFollows<InvalidParams>(({ qb, param }) =>
+    qb.where('birthYear', 'in', param('targetBirthYears'))
+  );
 });
 
 ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     targetHandle: number;
   }
-  db.selectFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
-    //@ts-expect-error - invalid parameter type
-    qb.where('handle', '=', param('targetHandle'))
+  parameterizeQuery(db.selectFrom('users')).asFollows<InvalidParams>(
+    ({ qb, param }) =>
+      //@ts-expect-error - invalid parameter type
+      qb.where('handle', '=', param('targetHandle'))
   );
-  db.selectFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
-    //@ts-expect-error - invalid parameter type
-    qb.where(({ or, cmpr }) => or([cmpr('handle', '=', param('targetHandle'))]))
+  parameterizeQuery(db.selectFrom('users')).asFollows<InvalidParams>(
+    ({ qb, param }) =>
+      qb.where(({ or, cmpr }) =>
+        //@ts-expect-error - invalid parameter type
+        or([cmpr('handle', '=', param('targetHandle'))])
+      )
   );
 });
 
@@ -254,20 +251,22 @@ ignore('disallows parameters in column positions', () => {
     targetHandle: string;
   }
 
-  db.selectFrom('users').parameterize<ValidParams>(({ qb, param }) =>
-    // @ts-expect-error - invalid parameter position
-    qb.where(param('targetHandle'), '=', 'jsmith')
+  parameterizeQuery(db.selectFrom('users')).asFollows<ValidParams>(
+    ({ qb, param }) =>
+      // @ts-expect-error - invalid parameter position
+      qb.where(param('targetHandle'), '=', 'jsmith')
   );
 
-  db.selectFrom('users').parameterize<ValidParams>(({ qb, param }) =>
-    qb.where(({ or, cmpr }) =>
-      or([
-        // @ts-expect-error - invalid parameter position
-        cmpr(param('targetHandle'), '=', 'jsmith'),
-        // @ts-expect-error - invalid parameter position
-        cmpr('birthYear', param('targetHandle'), 1980),
-      ])
-    )
+  parameterizeQuery(db.selectFrom('users')).asFollows<ValidParams>(
+    ({ qb, param }) =>
+      qb.where(({ or, cmpr }) =>
+        or([
+          // @ts-expect-error - invalid parameter position
+          cmpr(param('targetHandle'), '=', 'jsmith'),
+          // @ts-expect-error - invalid parameter position
+          cmpr('birthYear', param('targetHandle'), 1980),
+        ])
+      )
   );
 });
 
@@ -277,14 +276,14 @@ ignore('restricts provided parameters', async () => {
     targetBirthYear: number;
   }
 
-  const parameterization = db
-    .selectFrom('users')
-    .parameterize<ValidParams>(({ qb, param }) =>
-      qb
-        .where('handle', '=', param('targetHandle'))
-        .where('name', '=', 'John Smith')
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users')
+  ).asFollows<ValidParams>(({ qb, param }) =>
+    qb
+      .where('handle', '=', param('targetHandle'))
+      .where('name', '=', 'John Smith')
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
 
   await parameterization.execute(db, {
     //@ts-expect-error - invalid parameter name

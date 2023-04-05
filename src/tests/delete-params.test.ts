@@ -3,7 +3,7 @@ import { Kysely } from 'kysely';
 import { createDB, resetDB, destroyDB } from '../utils/test-setup';
 import { Database } from '../utils/test-tables';
 import { ignore } from '../utils/test-utils';
-import '../lib/delete-params';
+import { parameterizeQuery } from '../lib/parameterizer';
 
 let db: Kysely<Database>;
 
@@ -39,13 +39,13 @@ it('instantiates deletions, with multiple executions', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .deleteFrom('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.deleteFrom('users')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
 
   // First execution
 
@@ -80,13 +80,13 @@ it('parameterizes deletions, with multiple executions', async () => {
 
   // First execution
 
-  const parameterization = db
-    .deleteFrom('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.deleteFrom('users')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
   const result1 = await parameterization.execute(db, {
     targetNickname: user2.nickname,
     targetBirthYear: user2.birthYear,
@@ -115,16 +115,16 @@ it('parameterizes deletions using "in" operator', async () => {
   }
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .deleteFrom('users')
-    .parameterize<Params>(({ qb, param }) =>
-      qb
-        .where('nickname', '=', param('targetNickname'))
-        .where('birthYear', 'in', [
-          param('targetBirthYear1'),
-          param('targetBirthYear2'),
-        ])
-    );
+  const parameterization = parameterizeQuery(
+    db.deleteFrom('users')
+  ).asFollows<Params>(({ qb, param }) =>
+    qb
+      .where('nickname', '=', param('targetNickname'))
+      .where('birthYear', 'in', [
+        param('targetBirthYear1'),
+        param('targetBirthYear2'),
+      ])
+  );
   const results = await parameterization.execute(db, {
     targetNickname: user2.nickname,
     targetBirthYear1: 1980,
@@ -139,9 +139,9 @@ it('parameterizes deletions using "in" operator', async () => {
 it('parameterizes without defined parameters', async () => {
   await db.insertInto('users').values([user1, user2, user3]).execute();
 
-  const parameterization = db
-    .deleteFrom('users')
-    .parameterize(({ qb }) => qb.where('birthYear', '=', 1990));
+  const parameterization = parameterizeQuery(db.deleteFrom('users')).asFollows(
+    ({ qb }) => qb.where('birthYear', '=', 1990)
+  );
   const results = await parameterization.execute(db, {});
   expect(Number(results?.numAffectedRows)).toEqual(2);
 
@@ -153,20 +153,19 @@ ignore('array parameters are not allowed', () => {
   interface InvalidParams {
     targetBirthYears: number[];
   }
-  db.deleteFrom('users')
-    // @ts-expect-error - invalid parameter type
-    .parameterize<InvalidParams>(({ qb, param }) =>
-      qb.where('birthYear', 'in', param('targetBirthYears'))
-    );
+  // @ts-expect-error - invalid parameter type
+  parameterizeQuery(db.deleteFrom('users')).asFollows<InvalidParams>(
+    ({ qb, param }) => qb.where('birthYear', 'in', param('targetBirthYears'))
+  );
 });
 
 ignore('disallows incompatible parameter types', () => {
   interface InvalidParams {
     targetHandle: number;
   }
-  db.deleteFrom('users').parameterize<InvalidParams>(({ qb, param }) =>
-    //@ts-expect-error - invalid parameter type
-    qb.where('handle', '=', param('targetHandle'))
+  parameterizeQuery(db.deleteFrom('users')).asFollows<InvalidParams>(
+    // @ts-expect-error - invalid parameter type
+    ({ qb, param }) => qb.where('handle', '=', param('targetHandle'))
   );
 });
 
@@ -176,14 +175,14 @@ ignore('restricts provided parameters', async () => {
     targetBirthYear: number;
   }
 
-  const parameterization = db
-    .deleteFrom('users')
-    .parameterize<ValidParams>(({ qb, param }) =>
-      qb
-        .where('handle', '=', param('targetHandle'))
-        .where('name', '=', 'John Smith')
-        .where('birthYear', '=', param('targetBirthYear'))
-    );
+  const parameterization = parameterizeQuery(
+    db.deleteFrom('users')
+  ).asFollows<ValidParams>(({ qb, param }) =>
+    qb
+      .where('handle', '=', param('targetHandle'))
+      .where('name', '=', 'John Smith')
+      .where('birthYear', '=', param('targetBirthYear'))
+  );
 
   await parameterization.execute(db, {
     //@ts-expect-error - invalid parameter name

@@ -1,12 +1,11 @@
 {
   "name": "kysely-params",
-  "version": "0.2.7",
+  "version": "0.3.0",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "license": "MIT",
-  "description": "Kysely extension for parameterizing compiled queries",
+  "description": "A utility for parameterizing compiled Kysely queries",
   "keywords": [
     "kysely",
-    "extension",
     "compiled",
     "cached",
     "parameterized",
@@ -18,15 +17,8 @@
   "files": [
     "dist/**"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/cjs/index.js"
-    }
-  },
   "scripts": {
-    "build": "tsc && tsc -p tsconfig.cjs.json",
+    "build": "tsc",
     "test": "jest"
   },
   "devDependencies": {

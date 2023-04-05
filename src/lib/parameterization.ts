@@ -1,6 +1,6 @@
 import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 
-import { ParamArg } from './parameterizer';
+import { ParameterizedValue } from './parameterized-value';
 
 /**
  * Type for an object that defines the query parameters. It disallows the
@@ -20,6 +20,10 @@ export class ParameterizedQuery<P extends ParametersObject<P>, O> {
   #qb: Compilable<O> | null;
   #compiledQuery?: CompiledQuery<O>;
 
+  /**
+   * Creates a new parameterized query from a query builder whose query
+   * arguments may contained parameterized values.
+   */
   constructor(qb: Compilable<O>) {
     this.#qb = qb;
   }
@@ -69,8 +73,10 @@ export class ParameterizedQuery<P extends ParametersObject<P>, O> {
     return {
       query: this.#compiledQuery.query,
       sql: this.#compiledQuery.sql,
-      parameters: this.#compiledQuery.parameters.map((arg) =>
-        arg instanceof ParamArg ? params[arg.name as keyof P] : arg
+      parameters: this.#compiledQuery.parameters.map((value) =>
+        value instanceof ParameterizedValue
+          ? params[value.parameterName as keyof P]
+          : value
       ),
     };
   }
