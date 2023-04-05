@@ -86,9 +86,9 @@ it('parameterizes "where" selections, with multiple executions', async () => {
     targetNickname: user2.nickname,
     targetBirthYear: user2.birthYear,
   });
+  expect(result1).toEqual({ ...user2, id: 2 });
   // Make sure we can address properties by name.
   expect(result1?.name).toEqual(user2.name);
-  expect(result1).toEqual({ ...user2, id: 2 });
 
   // Second execution
 
@@ -143,6 +143,8 @@ it('parameterizes "where" selections using "in" operator', async () => {
     { ...user1, id: 1 },
     { ...user2, id: 2 },
   ]);
+  // Make sure we can address properties by name.
+  expect(results.rows[0].name).toEqual(user1.name);
 });
 
 it('parameterizes values within a where expression', async () => {
