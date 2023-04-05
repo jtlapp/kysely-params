@@ -331,3 +331,28 @@ ignore('restricts provided parameters', async () => {
   //@ts-expect-error - missing parameter name
   await parameterization.executeTakeFirst(db, {});
 });
+
+ignore('restrict selected column names', async () => {
+  interface ValidParams {
+    targetHandle: string;
+  }
+
+  const parameterization = parameterizeQuery(
+    db.selectFrom('users').selectAll()
+  ).asFollows<ValidParams>(({ qb, param }) =>
+    qb.where('handle', '=', param('targetHandle'))
+  );
+
+  const result1 = await parameterization.executeTakeFirst(db, {
+    targetHandle: 'jsmith',
+  });
+  // @ts-expect-error - invalid returned column
+  expect(result1?.notThere).toEqual('John Smith');
+
+  const result2 = await parameterization.execute(db, {
+    targetHandle: 'jsmith',
+  });
+  const firstRow = result2.rows[0];
+  // @ts-expect-error - invalid returned column
+  expect(firstRow.notThere).toEqual('John Smith');
+});

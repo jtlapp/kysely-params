@@ -76,6 +76,8 @@ it('parameterizes inserted strings and numbers with non-null values', async () =
   });
 
   expect(result).toEqual({ id: 1 });
+  // Make sure we can address properties by name.
+  expect(result?.id).toBe(1);
 
   const readUser = await db
     .selectFrom('users')
@@ -216,6 +218,9 @@ it('parameterizes single query performing multiple insertions', async () => {
   });
 
   expect(result.rows).toEqual([{ id: 1 }, { id: 2 }]);
+  // Make sure we can address properties by name.
+  expect(result?.rows[0].id).toBe(1);
+
   const readUsers = await db
     .selectFrom('users')
     .selectAll()
@@ -350,4 +355,35 @@ ignore('restricts provided parameters', async () => {
   await parameterization.execute(db, {});
   //@ts-expect-error - missing parameter name
   await parameterization.executeTakeFirst(db, {});
+});
+
+ignore('restrict returned column names', async () => {
+  interface ValidParams {
+    sourceHandle: string;
+    sourceBirthYear: number | null;
+  }
+
+  const parameterization = parameterizeQuery(
+    db.insertInto('users').returning('id')
+  ).asFollows<ValidParams>(({ qb, param }) =>
+    qb.values({
+      handle: param('sourceHandle'),
+      name: 'John Smith',
+      birthYear: param('sourceBirthYear'),
+    })
+  );
+
+  const result1 = await parameterization.executeTakeFirst(db, {
+    sourceHandle: 'jsmith',
+    sourceBirthYear: 2020,
+  });
+  // @ts-expect-error - invalid column name
+  result1?.notThere;
+
+  const result2 = await parameterization.execute(db, {
+    sourceHandle: 'jsmith',
+    sourceBirthYear: 2020,
+  });
+  // @ts-expect-error - invalid column name
+  result2.rows[0]?.notThere;
 });
