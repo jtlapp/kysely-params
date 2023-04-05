@@ -146,7 +146,7 @@ The type parameter passed to `parameterize` is an object of type `ParametersObje
 
 ## Parameterizations
 
-The `asFollows` method returns an instance of `ParameterizedQuery` having the provided parameterization. Please see the [API for `ParameterizedQuery`](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterization.ts), which allows for executing and instantiating parameterizations.
+The `asFollows` method returns an instance of `ParameterizedQuery` having the provided parameterization. Please see the [API for `ParameterizedQuery`](https://github.com/jtlapp/kysely-params/blob/main/src/lib/parameterized-query.ts), which allows for executing and instantiating parameterizations.
 
 `ParameterizedQuery` is available for import, should you need variables of this type. The following query accepts a `targetId` parameter and returns the `name` column:
 

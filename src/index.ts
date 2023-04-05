@@ -1,2 +1,2 @@
 export * from './lib/parameterizer';
-export * from './lib/parameterization';
+export * from './lib/parameterized-query';
