@@ -55,21 +55,21 @@ When calling `parameterizeQuery`, you must provide a query builder that specifie
 Now execute the parameterized query. You can execute the same parameterized query as many times as you like. The `execute` and `executeTakeFirst` methods are available, as is an `instantiate` method for returning a [`CompiledQuery`](https://github.com/kysely-org/kysely/blob/master/site/docs/recipes/splitting-build-compile-and-execute-code.md#execute-compiled-queries) with all parameters replaced with values:
 
 ```ts
-const results = await parameterization.execute(db, {
-  targetNickname: 'Johnny',
-  targetBirthYear: 1980,
-});
-
-const result1 = await parameterization.executeTakeFirst(db, {
+const result = await parameterization.executeTakeFirst(db, {
   targetNickname: 'Joey',
   targetBirthYear: 2000,
+});
+
+const results1 = await parameterization.execute(db, {
+  targetNickname: 'Johnny',
+  targetBirthYear: 1980,
 });
 
 const compiledQuery = parameterization.instantiate({
   targetNickname: 'Susie',
   targetBirthYear: 1990,
 });
-const result2 = await db.executeQuery(compiledQuery);
+const results2 = await db.executeQuery(compiledQuery);
 ```
 
 The query compiles on the first call to `execute`, `executeTakeFirst`, or `instantiate`, and the compilation is used on that and subsequent calls. The first argument is the instance of `Kysely`, and the second is an object that provides the values of the parameters.
