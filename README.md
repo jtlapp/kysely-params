@@ -16,7 +16,7 @@ This utility exists to help you feel comfortable using Kysely in any application
 
 This utility adds a bit of complication to your queries. It is best that you implement your application without this utility until you find that you need it. You are likely to discover that you never needed the additional complication.
 
-In case you're curious, [wirekayng](https://github.com/wirekang) provides [speed and memory benchmarks](https://github.com/wirekang/kysely-params-benchmarks) for the utility.
+In case you're curious, [wirekang](https://github.com/wirekang) provides [speed and memory benchmarks](https://github.com/wirekang/kysely-params-benchmarks) for the utility.
 
 ## Installation
 
