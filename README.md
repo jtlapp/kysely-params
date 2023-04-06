@@ -8,7 +8,15 @@ This package allows you to parameterize compiled [Kysely](https://github.com/kys
 
 The utility parameterizes values by replacing the values in the parameter list that Kysely passes to the database; values are not inserted into the query. For this reason, the package should be as safe as providing values to Kysely directly.
 
-_Note: Versions preceding v0.3.0 implemented this package as an extension to the Kysely query builders. The present solution is less fragile, as now only breaking changes to Kysely that bump the major version number have the potential to break this package._
+## Purpose
+
+Kysely is highly performant by itself, and you are unlikely to need this utility. Kysely's creator, Sami Koskimäki, maintains a [benchmark](https://github.com/kysely-org/kysely/blob/master/test/node/src/performance.test.ts) that tests the runtime speed of a complex query. Running the query 100,000 times on an M2 Macbook yields an average runtime of [14.6 microseconds](https://discord.com/channels/890118421587578920/1091365779376717945/1093203459454533633). Combine this with the fact that the performance bottleneck in database applications is almost always database itself, and you can see that for most applications, the present utility is unnecessary and would provide unnecessary additional complication to use.
+
+This utility exists to help you feel comfortable using Kysely in any application. Query builders necessarily create many objects, and we may be concerned about using Kysely in memory-intensive applications, in applications that involve compute-bound work, or in real-time applications with response time requirements, which garbage collection could interfere with. It is hard to know in advance of development and testing whether there will be a problem. For this reason, absent the present utility, some people may be inclined to stick with raw SQL just to be safe. The existence of the utility allows you to use Kysely, regardless of application requirements. In the unlikely case that you encounter a problem using vanilla Kysely, you can start using this utility instead of ditching Kysely.
+
+This utility adds a bit of complication to your queries. It is best that you implement your application without this utility until you find that you need it. You are likely to discover that you never needed the additional complication.
+
+In case you're curious, [wirekayng](https://github.com/wirekang) provides [speed and memory benchmarks](https://github.com/wirekang/kysely-params-benchmarks) for the utility.
 
 ## Installation
 
