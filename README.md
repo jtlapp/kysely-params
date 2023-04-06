@@ -4,7 +4,7 @@ A utility for parameterizing compiled Kysely queries
 
 ## Introduction
 
-This package allows you to parameterize compiled [Kysely](https://github.com/kysely-org/kysely) queries. It provides a `parameterizeQuery` utility function that allows you to selectively parameterize inserted, updated, and compared values within a Kysely query builder. The function returns a parameterized query that can be repeatedly called to execute or instantiate the query with different values for the parameters. On its first call, the query is compiled and its compilation cached, and the sourcing query builder is discarded to free memory. Subsequent calls use the cached compilation.
+This utility allows you to parameterize compiled [Kysely](https://github.com/kysely-org/kysely) queries. It provides a `parameterizeQuery` function that allows you to selectively parameterize inserted, updated, and compared values within a Kysely query builder. The function returns a parameterized query that can be repeatedly called to execute or instantiate the query with different values for the parameters. On its first call, the query is compiled and its compilation cached, and the sourcing query builder is discarded to free memory. Subsequent calls use the cached compilation.
 
 The utility parameterizes values by replacing the values in the parameter list that Kysely passes to the database; values are not inserted into the query. For this reason, the utility should be as safe as providing values to Kysely directly.
 
