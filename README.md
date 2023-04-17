@@ -10,7 +10,7 @@ The utility parameterizes values by replacing the values in the parameter list t
 
 ## Purpose
 
-Kysely is a highly performant query builder, and you shouldn't need this utility to improve query speed. However, Kysely does use memory, increase garbage collection, and consume clock cycles. This utility allows you to minimize Kysely resource usage for the classes of application that can benefit.
+Kysely is a highly performant query builder, and you shouldn't need this utility to improve query speed. However, Kysely does use memory, increase garbage collection, and consume clock cycles that could be used elsewhere. This utility allows you to minimize resource usage for the kinds of applications that can benefit.
 
 Kysely's creator, Sami Koskimäki, maintains a [benchmark](https://github.com/kysely-org/kysely/blob/master/test/node/src/performance.test.ts) that tests the runtime speed of a complex query. Running the query 100,000 times on an M2 Macbook yields an average runtime of [14.6 microseconds](https://discord.com/channels/890118421587578920/1091365779376717945/1093203459454533633). Combine this with the fact that the performance bottleneck in database applications is almost always the database itself, and you can see that for most applications, the present utility is unnecessary and would provide unnecessary additional complication to use.
 
