@@ -36,7 +36,7 @@ export class ParameterizedQuery<P extends ParametersObject<P>, O> {
    * @param params Object providing values for all parameters.
    * @returns Query result.
    */
-  execute<DB>(db: Kysely<DB>, params: P): Promise<QueryResult<O>> {
+  execute<DB>(db: Kysely<DB>, params: Readonly<P>): Promise<QueryResult<O>> {
     return db.executeQuery(this.instantiate(params));
   }
 
@@ -50,7 +50,7 @@ export class ParameterizedQuery<P extends ParametersObject<P>, O> {
    */
   async executeTakeFirst<DB>(
     db: Kysely<DB>,
-    params: P
+    params: Readonly<P>
   ): Promise<O | undefined> {
     const result = await db.executeQuery(this.instantiate(params));
     return result.rows.length > 0 ? result.rows[0] : undefined;
@@ -64,7 +64,7 @@ export class ParameterizedQuery<P extends ParametersObject<P>, O> {
    * @param params Object providing values for all parameters.
    * @returns Compiled query with values replacing all parameters.
    */
-  instantiate(params: P): CompiledQuery<O> {
+  instantiate(params: Readonly<P>): CompiledQuery<O> {
     if (this.#compiledQuery === undefined) {
       this.#compiledQuery = this.#qb!.compile();
       // Allow the query builder to be garbage collected.

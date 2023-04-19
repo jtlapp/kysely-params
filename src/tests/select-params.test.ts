@@ -64,6 +64,14 @@ it('instantiates "where" selections, with multiple executions', async () => {
   });
   const result2 = await db.executeQuery(compiledQuery2);
   expect(result2?.rows).toEqual([{ ...user1, id: 1 }]);
+
+  // Allows constant parameters
+
+  const params = {
+    targetNickname: 'Jane' as const,
+    targetBirthYear: 1990 as const,
+  } as const;
+  parameterization.instantiate(params);
 });
 
 it('parameterizes "where" selections, with multiple executions', async () => {
@@ -97,6 +105,15 @@ it('parameterizes "where" selections, with multiple executions', async () => {
     targetBirthYear: 1980,
   });
   expect(result2).toEqual({ ...user1, id: 1 });
+
+  // Allows constant parameters
+
+  const params = {
+    targetNickname: 'Jane' as const,
+    targetBirthYear: 1990 as const,
+  } as const;
+  parameterization.execute(db, params);
+  parameterization.executeTakeFirst(db, params);
 });
 
 it('parameterizes "where" selections for specific columns', async () => {
