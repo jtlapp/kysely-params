@@ -16,7 +16,7 @@ Kysely's creator, Sami Koskimäki, maintains a [benchmark](https://github.com/ky
 
 This utility exists to help you feel comfortable using Kysely in any application, regardless of performance requirements. Query builders necessarily create many objects, and we may be concerned about using Kysely in memory-intensive applications, in applications that involve compute-bound work, or in real-time applications with response time requirements, which garbage collection could interfere with. It is hard to know in advance of development and testing whether there will be a problem. For this reason, absent the present utility, some people may be inclined to stick with raw SQL just to be safe. The existence of the utility allows you to use Kysely, regardless of application requirements. In the unlikely case that you encounter a problem using vanilla Kysely, you can start using this utility instead of ditching Kysely.
 
-This utility adds a bit of complication to your queries. It is best that you implement your application without this utility until you find that you need it. You may discover that you never needed the additional complication.
+This utility adds a bit of complication to your queries. It's best to implement the application without this utility until you find that you need it. You may discover that you never needed the additional complication.
 
 In case you're curious, [wirekang](https://github.com/wirekang) provides [speed and memory benchmarks](https://github.com/wirekang/kysely-params-benchmarks) for the utility.
 
