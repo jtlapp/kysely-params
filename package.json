@@ -1,9 +1,13 @@
 {
   "name": "kysely-params",
-  "version": "0.3.10",
+  "version": "0.3.11",
   "author": "Joseph T. Lapp <arachnojoe@gmail.com>",
   "license": "MIT",
   "description": "A utility for parameterizing compiled Kysely queries",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jtlapp/kysely-params"
+  },
   "keywords": [
     "kysely",
     "compiled",
