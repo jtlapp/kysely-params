@@ -87,11 +87,6 @@ The query compiles on the first call to `execute`, `executeTakeFirst`, or `insta
 Parameterizing a query requires having an instance of `Kysely`, but we usually don't have this instance in the place where we need to define the parameterization. We can deal with this by defining a function that takes an instance of `Kysely` and returns an object having parameterizations. Then define an instance of this object as the return type of this function:
 
 ```ts
-interface UserParams {
-  targetNickname: string;
-  targetBirthYear: number;
-}
-
 class MyRepo {
   readonly #queries: ReturnType<MyRepo['getQueries']>;
 
