@@ -84,6 +84,45 @@ const results2 = await db.executeQuery(compiledQuery);
 
 The query compiles on the first call to `execute`, `executeTakeFirst`, or `instantiate`, and the compilation is used on that and subsequent calls. The first argument is the instance of `Kysely`, and the second is an object that provides the values of the parameters.
 
+Parameterizing a query requires having an instance of `Kysely`, but we usually don't have this instance in the place where we need to define the parameterization. We can deal with this by defining a function that takes an instance of `Kysely` and returns an object having parameterizations. Then define an instance of this object as the return type of this function:
+
+```ts
+interface UserParams {
+  targetNickname: string;
+  targetBirthYear: number;
+}
+
+class MyRepo {
+  readonly #queries: ReturnType<MyRepo['getQueries']>;
+
+  constructor(db: Kysely<Database>) {
+    this.#queries = this.getQueries(db);
+  }
+
+  getByID(id: number) {
+    return this.#queries.getByID(id).executeTakeFirst(db, { userID: id });
+  }
+
+  getByName(name: number) {
+    return this.#queries.getByName(name).execute(db, { name });
+  }
+
+  private getQueries(db: Kysely<Database>) {
+    return {
+      getByID: parameterizeQuery(db.selectFrom('users').selectAll()).asFollows<{
+        userID: number;
+      }>(({ qb, param }) => qb.where('id', '=', param('userID'))),
+
+      getByName: parameterizeQuery(
+        db.selectFrom('users').selectAll()
+      ).asFollows<{
+        name: string;
+      }>(({ qb, param }) => qb.where('name', '=', param('name'))),
+    };
+  }
+}
+```
+
 ## Parameters
 
 Parameters can be of any type allowed by the database dialect in use, and each can only be used in a query where its type is valid. You can use parameters as inserted values, as updated values, and as right-hand-side values in `where` expressions.
