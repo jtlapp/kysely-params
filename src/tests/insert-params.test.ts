@@ -263,8 +263,8 @@ ignore('disallows incompatible parameter types', () => {
 
   parameterizeQuery(db.insertInto('users')).asFollows<InvalidParams>(
     ({ qb, param }) =>
-      //@ts-expect-error - invalid parameter type
       qb.values({
+        //@ts-expect-error - invalid parameter type
         handle: param('sourceHandle'),
         name: 'John Smith',
       })
@@ -287,8 +287,8 @@ ignore('restricts a generated column parameter', async () => {
 
   parameterizeQuery(db.insertInto('users')).asFollows<InvalidParams>(
     ({ qb, param }) =>
-      //@ts-expect-error - invalid parameter type
       qb.values({
+        //@ts-expect-error - invalid parameter type
         id: param('sourceId'),
         name: 'John Smith',
         handle: 'jsmith',

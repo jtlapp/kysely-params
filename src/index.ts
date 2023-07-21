@@ -1,3 +1,3 @@
-export * from './lib/parameterizer';
-export * from './lib/parameterized-query';
-export * from './lib/parameterized-value';
+export * from './lib/parameterizer.js';
+export * from './lib/parameterized-query.js';
+export * from './lib/parameterized-value.js';

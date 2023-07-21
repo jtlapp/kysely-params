@@ -1,7 +1,7 @@
 import { Compilable } from 'kysely';
 
-import { ParameterizedValue } from './parameterized-value';
-import { ParameterizedQuery, ParametersObject } from './parameterized-query';
+import { ParameterizedValue } from './parameterized-value.js';
+import { ParameterizedQuery, ParametersObject } from './parameterized-query.js';
 
 type QueryBuilderOutput<QB> = QB extends Compilable<infer O> ? O : never;
 

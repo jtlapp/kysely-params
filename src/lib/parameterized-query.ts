@@ -1,6 +1,6 @@
 import { CompiledQuery, Compilable, Kysely, QueryResult } from 'kysely';
 
-import { ParameterizedValue } from './parameterized-value';
+import { ParameterizedValue } from './parameterized-value.js';
 
 /**
  * Type for an object that defines the query parameters. It disallows the
